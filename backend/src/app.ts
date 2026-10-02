@@ -4,6 +4,7 @@ import dotenv from "dotenv"
 dotenv.config();
 
 import authRouter from "./routes/auth.route.js";
+import boardRouter from "./routes/board.route.js"
 
 const app = express();
 
@@ -17,6 +18,7 @@ app.get("/", (req, res) => {
 })
 
 app.use("/api/auth", authRouter)
+app.use("/api/board", boardRouter)
 
 app.listen(PORT, () => {
     console.log("Server running on port", PORT);

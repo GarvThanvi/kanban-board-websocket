@@ -1,11 +1,10 @@
 import express from "express";
-
-const router = express.Router();
-
 import {z} from "zod";
 import prisma from "../lib/prisma.js";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
+
+const router = express.Router();
 
 const singUpSchema = z.object({
     email: z.email("Invalid email format."),
