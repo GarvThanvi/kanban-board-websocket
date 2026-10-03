@@ -13,6 +13,16 @@ const createBoardSchema = z.object({
 });
 type createBoard = z.infer<typeof createBoardSchema>;
 
+const updateBoardSchema = z.object({
+  name: z.string().optional(),
+  description: z.string().optional(),
+});
+
+interface updateData {
+  name?: string;
+  description?: string;
+}
+
 router.post("/", async (req, res) => {
   try {
     const userId = req.userId!;
@@ -67,27 +77,137 @@ router.post("/", async (req, res) => {
   }
 });
 
-router.delete("/:id", async (req, res) => {
-    try {
-        const userId = req.userId!;
-        const boardId = req.params.id;
+router.get("/", async (req, res) => {
+  try {
+    const userId = req.userId!;
 
-        const deleteResult = await prisma.board.deleteMany({
-            where: {
-                id: boardId,
-                ownerId: userId 
-            }
-        })
+    const boards = await prisma.board.findMany({
+      where: {
+        ownerId: userId,
+      },
+    });
 
-        if(deleteResult.count == 0){
-            return res.status(403).json({ success: false, message: "Unauthorized or board not found" });
-        }
+    return res.status(200).json({
+      success: true,
+      message: "Successfully fetched boards for user",
+      boards,
+    });
+  } catch (error) {
+    console.error("Error while fetching boards for a user ", error);
+    return res
+      .status(500)
+      .json({ success: false, message: "Interval server error" });
+  }
+});
 
-        return res.status(200).json({success: true, message: "Sucessfully deleted the board", id: boardId})
-    } catch (error) {
-        console.error("Error while deleting a board ", error);
-        return res.status(500).json({success: false, message: "Internal server error"})
+router.get("/:boardId", async (req, res) => {
+  try {
+    const boardId = req.params.boardId!;
+    const userId = req.userId!;
+
+    const boardWithColumnsWithCards = await prisma.board.findUnique({
+      where: {
+        ownerId: userId,
+        id: boardId,
+      },
+      include: {
+        columns: {
+          include: {
+            cards: true,
+          },
+        },
+      },
+    });
+
+    if (!boardWithColumnsWithCards)
+      return res
+        .status(404)
+        .json({ success: false, message: "Board not found" });
+
+    return res
+      .status(200)
+      .json({ success: true, data: boardWithColumnsWithCards });
+  } catch (error) {
+    console.error("Error while getting detailed board ", error);
+    return res
+      .status(500)
+      .json({ success: false, message: "Internal server error" });
+  }
+});
+
+router.patch("/:boardId", async (req, res) => {
+  try {
+    const userId = req.userId!;
+    const boardId = req.params.boardId!;
+
+    const result = updateBoardSchema.safeParse(req.body);
+    if (!result.success) {
+      return res
+        .status(400)
+        .json({ success: false, message: result.error.issues[0]?.message });
     }
+
+    let toUdpateData: updateData = {};
+    if (result.data.name) toUdpateData.name = result.data.name;
+    if (result.data.description)
+      toUdpateData.description = result.data.description;
+
+    const updatedBoard = await prisma.board.update({
+      where: {
+        ownerId: userId,
+        id: boardId,
+      },
+      data: toUdpateData,
+    });
+    if (!updatedBoard) {
+      return res.status(404).json({
+        success: false,
+        message: "No such board found or the board doesnt belong to you",
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: "Board updates successfully",
+      updatedBoard: updatedBoard,
+    });
+  } catch (error) {
+    console.error("Error while updating board ", error);
+    return res
+      .status(500)
+      .json({ success: false, message: "Internal server error" });
+  }
+});
+
+router.delete("/:boardId", async (req, res) => {
+  try {
+    const userId = req.userId!;
+    const boardId = req.params.boardId;
+
+    const deleteResult = await prisma.board.deleteMany({
+      where: {
+        id: boardId,
+        ownerId: userId,
+      },
+    });
+
+    if (deleteResult.count == 0) {
+      return res
+        .status(403)
+        .json({ success: false, message: "Unauthorized or board not found" });
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: "Sucessfully deleted the board",
+      id: boardId,
+    });
+  } catch (error) {
+    console.error("Error while deleting a board ", error);
+    return res
+      .status(500)
+      .json({ success: false, message: "Internal server error" });
+  }
 });
 
 export default router;

@@ -5,6 +5,7 @@ dotenv.config();
 
 import authRouter from "./routes/auth.route.js";
 import boardRouter from "./routes/board.route.js"
+import columnRouter from "./routes/column.route.js";
 
 const app = express();
 
@@ -19,6 +20,7 @@ app.get("/", (req, res) => {
 
 app.use("/api/auth", authRouter)
 app.use("/api/board", boardRouter)
+app.use("api/column", columnRouter);
 
 app.listen(PORT, () => {
     console.log("Server running on port", PORT);
