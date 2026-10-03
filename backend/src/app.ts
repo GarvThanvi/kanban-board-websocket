@@ -20,7 +20,7 @@ app.get("/", (req, res) => {
 
 app.use("/api/auth", authRouter)
 app.use("/api/board", boardRouter)
-app.use("api/column", columnRouter);
+app.use("/api/column", columnRouter);
 
 app.listen(PORT, () => {
     console.log("Server running on port", PORT);
