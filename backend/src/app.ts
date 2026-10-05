@@ -24,7 +24,5 @@ app.use("/api/board", boardRouter)
 app.use("/api/column", columnRouter);
 app.use("/api/card", cardRouter);
 
-app.listen(PORT, () => {
-    console.log("Server running on port", PORT);
-})
+export default app;
 
