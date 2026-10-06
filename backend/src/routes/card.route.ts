@@ -81,6 +81,9 @@ router.post("/:boardId/columns/:columnId/cards", async (req, res) => {
       },
     });
 
+    const io = req.app.get("io");
+    io.to(boardId).emit("card:created", newCard);
+
     return res.status(200).json({
       success: true,
       message: "New card created successfully",
@@ -151,6 +154,9 @@ router.patch("/:boardId/cards/:cardId", async (req, res) => {
       },
       data: updateCardDataFiltered,
     });
+
+    const io = req.app.get("io");
+    io.to(boardId).emit("card:updated", updatedCard);
 
     return res.status(200).json({
       success: true,
@@ -304,6 +310,18 @@ router.patch("/:boardId/cards/:cardId/move", async (req, res) => {
           }),
     ]);
 
+    const io = req.app.get("io");
+    io.to(boardId).emit("card:moved", {
+      oldColumn: {
+        columnId: reorderCardData.oldColumnId,
+        cards: oldColumnCards,
+      },
+      newColumn: {
+        columnId: reorderCardData.newColumnId,
+        cards: newColumnCards ?? oldColumnCards,
+      },
+    });
+
     return res.status(200).json({
       success: true,
       message: "Card moved successfully",
@@ -372,13 +390,14 @@ router.delete("/:boardId/card/:cardId", async (req, res) => {
       },
     });
 
-    return res
-      .status(200)
-      .json({
-        success: true,
-        message: "Deleted card successfully",
-        deletedCardId: cardId,
-      });
+    const io = req.app.get("io");
+    io.to(boardId).emit("card:deleted", { cardId });
+
+    return res.status(200).json({
+      success: true,
+      message: "Deleted card successfully",
+      deletedCardId: cardId,
+    });
   } catch (error) {
     console.error("Error while deleting a card ", error);
     return res

@@ -62,6 +62,9 @@ router.post("/:boardId", async (req, res) => {
       },
     });
 
+    const io = req.app.get("io");
+    io.to(boardId).emit("column:created", { newColumn });
+
     return res.status(200).json({
       success: true,
       message: "Created new column successfully",
@@ -126,6 +129,9 @@ router.patch("/:boardId/columns/:columnId", async (req, res) => {
         name: newName.name,
       },
     });
+
+    const io = req.app.get("io");
+    io.to(boardId).emit("column:updated", { updatedColumn });
 
     return res.status(200).json({
       success: true,
@@ -203,6 +209,9 @@ router.patch("/:boardId/position", async (req, res) => {
       },
     });
 
+    const io = req.app.get("io");
+    io.to(boardId).emit("column:moved", { updatedColumns });
+
     return res.status(200).json({
       success: true,
       message: "Successfully re-ordered the columns",
@@ -239,8 +248,8 @@ router.delete("/:boardId/columns/:columnId/delete", async (req, res) => {
         boardId: board.id,
       },
       orderBy: {
-        position: 'asc'
-      }
+        position: "asc",
+      },
     });
 
     const exists = columns.some((col) => col.id === columnId);
@@ -257,7 +266,6 @@ router.delete("/:boardId/columns/:columnId/delete", async (req, res) => {
     });
 
     const filteredColumns = columns.filter((col) => col.id !== columnId);
-
 
     await prisma.$transaction(
       filteredColumns.map((col, index) =>
@@ -277,6 +285,9 @@ router.delete("/:boardId/columns/:columnId/delete", async (req, res) => {
         boardId: board.id,
       },
     });
+
+    const io = req.app.get("io");
+    io.to(boardId).emit("column:deleted", {columnIdDeleted: columnId, updatedColumns})
 
     return res.status(200).json({
       success: true,
