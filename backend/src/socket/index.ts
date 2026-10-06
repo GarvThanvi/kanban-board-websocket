@@ -16,9 +16,42 @@ const makeGuestName = () => {
   return `Anonymous ${n}`;
 };
 
+type ActionType = "creating" | "editing" | "moving";
+
+type EphermeralAction = {
+  type: ActionType;
+  targetId: string;
+};
+
+const setAction = (
+  socket: Socket,
+  boardId: string,
+  type: ActionType,
+  targetId: string
+) => {
+  clearAction(socket, boardId);
+  socket.data.activeAction = { type, targetId } as EphermeralAction;
+  socket.to(boardId).emit(`user:${type}`, {
+    user: socket.data.user,
+    targetId,
+  });
+};
+
+const clearAction = (socket: Socket, boardId: string) => {
+  const action = socket.data.activeAction as EphermeralAction | undefined;
+  if (!action) return;
+
+  socket.to(boardId).emit(`user:${action.type}:stop`, {
+    user: socket.data.user,
+    targetId: action.targetId,
+  });
+  socket.data.activeAction = null;
+};
+
 export const registerSocketHandlers = (io: Server) => {
   io.use((socket, next) => {
-    const token = socket.handshake.auth?.token;
+    const token =
+      socket.handshake.auth?.token || socket.handshake.headers?.token;
     if (token) {
       try {
         const payload = verifyTokenSocket(token);
@@ -61,49 +94,47 @@ export const registerSocketHandlers = (io: Server) => {
       });
     });
 
+    socket.on("board:leave", ({ boardId }: { boardId: string }) => {
+      clearAction(socket, boardId);
+      socket.leave(boardId);
+
+      const count = removeFromBoard(boardId, socket.data.user.id, socket.id);
+      io.to(boardId).emit("presence:update", { count, left: socket.data.user });
+
+      if (socket.data.boardId === boardId) {
+        socket.data.boardId = null;
+      }
+    });
+
     socket.on(
       "card:creating",
       ({ boardId, columnId }: { boardId: string; columnId: string }) => {
-        socket.to(boardId).emit("user:creating", {
-          user: socket.data.user,
-          columnId,
-        });
-      }
-    );
-
-    socket.on(
-      "card:creating:stop",
-      ({ boardId, columnId }: { boardId: string; columnId: string }) => {
-        socket.to(boardId).emit("user:creating:stop", {
-          user: socket.data.user,
-          columnId,
-        });
+        setAction(socket, boardId, "creating", columnId);
       }
     );
 
     socket.on(
       "card:editing",
       ({ boardId, cardId }: { boardId: string; cardId: string }) => {
-        socket.to(boardId).emit("user:editing", {
-          user: socket.data.user,
-          cardId,
-        });
+        setAction(socket, boardId, "editing", cardId);
       }
     );
 
     socket.on(
-      "card:editing:stop",
+      "card:moving",
       ({ boardId, cardId }: { boardId: string; cardId: string }) => {
-        socket.to(boardId).emit("user:editing:stop", {
-          user: socket.data.user,
-          cardId,
-        });
+        setAction(socket, boardId, "moving", cardId);
       }
     );
+
+    socket.on("action:stop", ({ boardId }: { boardId: string }) => {
+      clearAction(socket, boardId);
+    });
 
     socket.on("disconnect", () => {
       const { boardId, user } = socket.data;
       if (boardId && user) {
+        clearAction(socket, boardId);
         const count = removeFromBoard(boardId, user.id, socket.id);
         io.to(boardId).emit("presence:update", { count, left: user });
       }
