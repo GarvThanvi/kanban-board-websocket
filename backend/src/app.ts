@@ -7,6 +7,7 @@ import authRouter from "./routes/auth.route.ts";
 import boardRouter from "./routes/board.route.ts"
 import columnRouter from "./routes/column.route.ts";
 import cardRouter from "./routes/card.route.ts";
+import publicShareRouter from "./routes/publicshare.route.ts";
 
 const app = express();
 
@@ -23,6 +24,7 @@ app.use("/api/auth", authRouter)
 app.use("/api/board", boardRouter)
 app.use("/api/column", columnRouter);
 app.use("/api/card", cardRouter);
+app.use("/api/public", publicShareRouter);
 
 export default app;
 
