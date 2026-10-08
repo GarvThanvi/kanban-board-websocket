@@ -8,10 +8,9 @@ import boardRouter from "./routes/board.route.ts"
 import columnRouter from "./routes/column.route.ts";
 import cardRouter from "./routes/card.route.ts";
 import publicShareRouter from "./routes/publicshare.route.ts";
+import privateShareRouter from "./routes/privateshare.routes.ts"
 
 const app = express();
-
-const PORT = process.env.PORT;
 
 app.use(cors());
 app.use(express.json());
@@ -25,6 +24,7 @@ app.use("/api/board", boardRouter)
 app.use("/api/column", columnRouter);
 app.use("/api/card", cardRouter);
 app.use("/api/public", publicShareRouter);
+app.use("/api/private", privateShareRouter);
 
 export default app;
 
