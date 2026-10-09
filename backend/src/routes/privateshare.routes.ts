@@ -4,6 +4,7 @@ import prisma from "../lib/prisma.ts";
 import { generateShareToken } from "../utils/token.ts";
 import { sendInviteEmail } from "../utils/email.ts";
 import { verifyToken } from "../middleware/auth.middleware.ts";
+import { requireBoardRole } from "../middleware/boardAccess.middleware.ts";
 
 const router = express.Router();
 
@@ -14,10 +15,10 @@ const sendInviteSchema = z.object({
 
 router.use(verifyToken);
 
-router.post("/invite/:boardId", async (req, res) => {
+router.post("/invite/:boardId", requireBoardRole("OWNER"), async (req, res) => {
   try {
     const userId = req.userId!;
-    const boardId = req.params.boardId!;
+    const boardId = req.params.boardId! as string;
 
     const result = sendInviteSchema.safeParse(req.body);
     if (!result.success) {
@@ -31,7 +32,6 @@ router.post("/invite/:boardId", async (req, res) => {
     const board = await prisma.board.findUnique({
       where: {
         id: boardId,
-        ownerId: userId,
       },
     });
     if (!board) {

@@ -2,6 +2,7 @@ import express from "express";
 import { z } from "zod";
 import { verifyToken } from "../middleware/auth.middleware.js";
 import prisma from "../lib/prisma.js";
+import { requireBoardRole } from "../middleware/boardAccess.middleware.ts";
 
 const router = express.Router();
 
@@ -100,20 +101,19 @@ router.get("/", async (req, res) => {
   }
 });
 
-router.get("/:boardId", async (req, res) => {
+router.get("/:boardId", requireBoardRole("VIEWER"), async (req, res) => {
   try {
-    const boardId = req.params.boardId!;
-    const userId = req.userId!;
+    const boardId = req.params.boardId! as string;
 
     const boardWithColumnsWithCards = await prisma.board.findUnique({
       where: {
-        ownerId: userId,
         id: boardId,
       },
       include: {
         columns: {
+          orderBy: { position: "asc" },
           include: {
-            cards: true,
+            cards: { orderBy: { position: "asc" } },
           },
         },
       },
@@ -124,9 +124,11 @@ router.get("/:boardId", async (req, res) => {
         .status(404)
         .json({ success: false, message: "Board not found" });
 
-    return res
-      .status(200)
-      .json({ success: true, data: boardWithColumnsWithCards });
+    return res.status(200).json({
+      success: true,
+      data: boardWithColumnsWithCards,
+      role: req.boardRole,
+    });
   } catch (error) {
     console.error("Error while getting detailed board ", error);
     return res
@@ -135,10 +137,10 @@ router.get("/:boardId", async (req, res) => {
   }
 });
 
-router.patch("/:boardId", async (req, res) => {
+router.patch("/:boardId", requireBoardRole("OWNER"), async (req, res) => {
   try {
     const userId = req.userId!;
-    const boardId = req.params.boardId!;
+    const boardId = req.params.boardId! as string;
 
     const result = updateBoardSchema.safeParse(req.body);
     if (!result.success) {
@@ -179,10 +181,10 @@ router.patch("/:boardId", async (req, res) => {
   }
 });
 
-router.delete("/:boardId", async (req, res) => {
+router.delete("/:boardId", requireBoardRole("OWNER"), async (req, res) => {
   try {
     const userId = req.userId!;
-    const boardId = req.params.boardId;
+    const boardId = req.params.boardId as string;
 
     const deleteResult = await prisma.board.deleteMany({
       where: {
