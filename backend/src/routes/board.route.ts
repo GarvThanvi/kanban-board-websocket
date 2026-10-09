@@ -88,10 +88,20 @@ router.get("/", async (req, res) => {
       },
     });
 
+    const membership = await prisma.boardMember.findMany({
+      where: { userId },
+      include: {
+        board: { include: { owner: { select: { id: true, name: true } } } },
+      },
+      orderBy: { createdAt: "desc" },
+    });
+    const shared = membership.map((m) => ({ ...m.board, role: m.role }));
+
     return res.status(200).json({
       success: true,
       message: "Successfully fetched boards for user",
       boards,
+      shared
     });
   } catch (error) {
     console.error("Error while fetching boards for a user ", error);

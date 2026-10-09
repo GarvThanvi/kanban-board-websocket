@@ -9,7 +9,7 @@ import { requireBoardRole } from "../middleware/boardAccess.middleware.ts";
 const router = express.Router();
 
 const sendInviteSchema = z.object({
-  email: z.string(),
+  email: z.email(),
   role: z.enum(["EDITOR", "VIEWER"]),
 });
 

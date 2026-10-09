@@ -55,6 +55,17 @@ router.post("/signup", async (req, res) => {
       { expiresIn: "7d" }
     );
 
+    await prisma.boardInvitation.updateMany({
+      where: {
+        email: { equals: newUser.email, mode: "insensitive" },
+        receiverId: null,
+        status: "PENDING",
+      },
+      data: {
+        receiverId: newUser.id,
+      },
+    });
+
     return res.status(200).json({
       success: true,
       token,
