@@ -101,13 +101,13 @@ router.get("/", async (req, res) => {
       success: true,
       message: "Successfully fetched boards for user",
       boards,
-      shared
+      shared,
     });
   } catch (error) {
     console.error("Error while fetching boards for a user ", error);
     return res
       .status(500)
-      .json({ success: false, message: "Interval server error" });
+      .json({ success: false, message: "Internal server error" });
   }
 });
 
@@ -126,6 +126,8 @@ router.get("/:boardId", requireBoardRole("VIEWER"), async (req, res) => {
             cards: { orderBy: { position: "asc" } },
           },
         },
+        publicLink: true,
+        members: {include: { user: { select: { name: true, email: true } } }}
       },
     });
 
@@ -178,6 +180,9 @@ router.patch("/:boardId", requireBoardRole("OWNER"), async (req, res) => {
       });
     }
 
+    const io = req.app.get("io");
+    io.to(boardId).emit("board:updated", { updatedBoard });
+
     return res.status(200).json({
       success: true,
       message: "Board updates successfully",
@@ -209,13 +214,51 @@ router.delete("/:boardId", requireBoardRole("OWNER"), async (req, res) => {
         .json({ success: false, message: "Unauthorized or board not found" });
     }
 
+    const io = req.app.get("io");
+    io.to(boardId).emit("board:deleted", { deleteResult, boardIdDeleted: boardId });
+
     return res.status(200).json({
       success: true,
-      message: "Sucessfully deleted the board",
+      message: "Successfully deleted the board",
       id: boardId,
     });
   } catch (error) {
     console.error("Error while deleting a board ", error);
+    return res
+      .status(500)
+      .json({ success: false, message: "Internal server error" });
+  }
+});
+
+router.get("/:boardId/members", requireBoardRole("VIEWER"), async (req, res) => {
+  try {
+    const boardId = req.params.boardId! as string;
+
+    const board = await prisma.board.findUnique({
+      where: { id: boardId },
+    });
+    if (!board) {
+      return res
+        .status(404)
+        .json({ success: false, message: "Board not found" });
+    }
+
+    const boardMembers = await prisma.boardMember.findMany({
+      where: {
+        boardId: board.id,
+      },
+      include: { user: { select: { name: true, email: true } } },
+    });
+
+    return res
+      .status(200)
+      .json({
+        success: true,
+        message: "Successfully fetched all board members",
+        boardMembers,
+      });
+  } catch (error) {
+    console.error("Error while getting board members ", error);
     return res
       .status(500)
       .json({ success: false, message: "Internal server error" });

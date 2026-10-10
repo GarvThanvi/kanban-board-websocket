@@ -55,3 +55,44 @@ export const sendInviteEmail = async (
   }
   return response.json();
 };
+
+export const sendForgotPasswordEmail = async (
+  email: string,
+  token: string,
+) => {
+  const inviteUrl = `${process.env.FRONTEND_URL}/forgot-password/${token}`;
+
+  const htmlContent = `
+    <div style="font-family: Arial, sans-serif; max-width: 480px; margin: 0 auto;">
+      <p style="color: #666; font-size: 13px;">
+        Go to this link to update your password:<br />${inviteUrl}
+      </p>
+    </div>
+  `;
+
+  const textContent = `Reset your password`;
+
+  const response = await fetch("https://api.brevo.com/v3/smtp/email", {
+    method: "POST",
+    headers: {
+      accept: "application/json",
+      "content-type": "application/json",
+      "api-key": process.env.BREVO_API_KEY!,
+    },
+    body: JSON.stringify({
+      sender: {
+        name: process.env.EMAIL_FROM_NAME,
+        email: process.env.EMAIL_FROM_ADDRESS,
+      },
+      to: [{ email }],
+      subject: `Reset your password`,
+      htmlContent,
+      textContent,
+    }),
+  });
+  if (!response.ok) {
+    const errorBody = await response.text();
+    throw new Error(`Brevo email failed (${response.status}): ${errorBody}`);
+  }
+  return response.json();
+};

@@ -13,7 +13,7 @@ const toggleBoardSchema = z.object({
 
 router.use(verifyToken);
 
-router.get("/share/:boardId", requireBoardRole("OWNER"), async (req, res) => {
+router.post("/share/:boardId", requireBoardRole("OWNER"), async (req, res) => {
   try {
     const boardId = req.params.boardId as string;
 
@@ -151,7 +151,7 @@ router.patch(
         },
       });
 
-      return res.status(404).json({
+      return res.status(200).json({
         success: true,
         message: "Toggled share status",
         publicBoardLink,

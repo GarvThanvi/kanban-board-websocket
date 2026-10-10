@@ -23,7 +23,7 @@ router.post("/invite/:boardId", requireBoardRole("OWNER"), async (req, res) => {
     const result = sendInviteSchema.safeParse(req.body);
     if (!result.success) {
       return res
-        .status(404)
+        .status(400)
         .json({ success: false, message: result.error.issues[0]?.message });
     }
 
