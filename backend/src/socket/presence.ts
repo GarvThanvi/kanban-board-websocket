@@ -1,49 +1,61 @@
-const boardPresence = new Map<string, Map<string, Set<string>>>();
+export type SocketUser = {
+  id: string;
+  name: string;
+  isGuest: boolean;
+};
+
+type Entry = { sockets: Set<string>; user: SocketUser };
+
+const boardPresence = new Map<string, Map<string, Entry>>();
 
 export const addToBoard = (
   boardId: string,
-  userId: string,
+  user: SocketUser,
   socketId: string
-) => {
-  if (!boardPresence.has(boardId)) {
-    boardPresence.set(boardId, new Map());
+): { count: number; users: SocketUser[] } => {
+  let users = boardPresence.get(boardId);
+  if (!users) {
+    users = new Map();
+    boardPresence.set(boardId, users);
   }
 
-  const users = boardPresence.get(boardId);
-  if (!users?.has(userId)) {
-    users?.set(userId, new Set());
+  let entry = users.get(user.id);
+  if (!entry) {
+    entry = { sockets: new Set(), user };
+    users.set(user.id, entry);
   }
+  entry.sockets.add(socketId);
 
-  users?.get(userId)?.add(socketId);
-
-  return users?.size;
+  return { count: users.size, users: getBoardUsers(boardId) };
 };
 
 export const removeFromBoard = (
   boardId: string,
   userId: string,
   socketId: string
-) => {
-    const users = boardPresence.get(boardId);
-    if(!users) return 0;
-    
-    const sockets = users.get(userId);
-    if(sockets){
-        sockets.delete(socketId);
-        if(sockets.size === 0){
-            users.delete(userId);
-        }
-    }
+): { count: number; users: SocketUser[] } => {
+  const users = boardPresence.get(boardId);
+  if (!users) {
+    return { count: 0, users: [] };
+  }
 
-    if(users.size === 0){
-        boardPresence.delete(boardId)
-    }
+  const entry = users.get(userId);
+  if (entry) {
+    entry.sockets.delete(socketId);
+    if (entry.sockets.size === 0) users.delete(userId);
+  }
 
-    return users.size;
+  if (users.size === 0) boardPresence.delete(boardId);
+
+  return { count: users.size, users: getBoardUsers(boardId) };
 };
 
-export const getBoardUsers = (boardId: string): string[] => {
-    const users = boardPresence.get(boardId);
-    if(!users) return [];
-    return Array.from(users.keys());
-}
+export const getBoardUsers = (boardId: string): SocketUser[] => {
+  const users = boardPresence.get(boardId);
+  if (!users) return [];
+  return Array.from(users.values()).map((entry) => entry.user);
+};
+
+export const getBoardCount = (boardId: string): number => {
+  return boardPresence.get(boardId)?.size ?? 0;
+};

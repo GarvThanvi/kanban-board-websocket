@@ -165,4 +165,38 @@ router.patch(
   }
 );
 
+router.delete(
+  "/share/:boardId/delete",
+  requireBoardRole("OWNER"),
+  async (req, res) => {
+    try {
+      const boardId = req.params.boardId! as string;
+
+      const boardPublicLink = await prisma.publicBoardLink.findUnique({
+        where: { boardId },
+      });
+      if (!boardPublicLink) {
+        return res
+          .status(404)
+          .json({ success: false, message: "No such public link exists" });
+      }
+
+      const deletedPublicLink = await prisma.publicBoardLink.delete({
+        where: { boardId },
+      });
+
+      return res.status(200).json({
+        success: true,
+        message: "Successfully deleted the board public link",
+        deletedPublicLinkId: deletedPublicLink.id,
+      });
+    } catch (error) {
+      console.error("Error while deleting public board link ", error);
+      return res
+        .status(500)
+        .json({ success: false, message: "Internal server error" });
+    }
+  }
+);
+
 export default router;
