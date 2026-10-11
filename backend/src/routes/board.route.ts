@@ -157,7 +157,6 @@ router.get("/:boardId", requireBoardRole("VIEWER"), async (req, res) => {
 
 router.patch("/:boardId", requireBoardRole("OWNER"), async (req, res) => {
   try {
-    const userId = req.userId!;
     const boardId = req.params.boardId! as string;
 
     const result = updateBoardSchema.safeParse(req.body);
@@ -174,17 +173,10 @@ router.patch("/:boardId", requireBoardRole("OWNER"), async (req, res) => {
 
     const updatedBoard = await prisma.board.update({
       where: {
-        ownerId: userId,
         id: boardId,
       },
       data: toUdpateData,
     });
-    if (!updatedBoard) {
-      return res.status(404).json({
-        success: false,
-        message: "No such board found or the board doesnt belong to you",
-      });
-    }
 
     const io = req.app.get("io");
     io.to(boardId).emit("board:updated", { updatedBoard });

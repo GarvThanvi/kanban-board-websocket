@@ -31,6 +31,16 @@ const resetPasswordSchema = z.object({
   password: z.string().min(8, "Password must be atleast 8 characters long."),
 });
 
+const updateProfileSchema = z.object({
+  name: z.string().min(2, "Name must be at least 2 characters.").optional(),
+  email: z.email("Invalid email format.").optional(),
+});
+
+const changePasswordSchema = z.object({
+  currentPassword: z.string(),
+  newPassword: z.string().min(8, "Password must be atleast 8 characters long."),
+});
+
 router.post("/signup", async (req, res) => {
   try {
     const result = singUpSchema.safeParse(req.body);
@@ -160,10 +170,104 @@ router.get("/me", verifyToken, async (req, res) => {
 
     return res.status(200).json({
       success: true,
-      userData: { email: user.email, id: user.id, name: user.name },
+      data: { email: user.email, id: user.id, name: user.name },
     });
   } catch (error) {
     console.error("Error while getting user ", error);
+    return res
+      .status(500)
+      .json({ success: false, message: "Internal server error" });
+  }
+});
+
+router.patch("/me", verifyToken, async (req, res) => {
+  try {
+    const userId = req.userId!;
+
+    const result = updateProfileSchema.safeParse(req.body);
+    if (!result.success) {
+      return res
+        .status(400)
+        .json({ success: false, message: result.error.issues[0]?.message });
+    }
+
+    const { name, email } = result.data;
+
+    if (email) {
+      const emailTaken = await prisma.user.findUnique({ where: { email } });
+      if (emailTaken && emailTaken.id !== userId) {
+        return res.status(409).json({
+          success: false,
+          message: "Email already exists, please use another one",
+        });
+      }
+    }
+
+    const updateData: { name?: string; email?: string } = {};
+    if (name !== undefined) updateData.name = name;
+    if (email !== undefined) updateData.email = email;
+
+    const updatedUser = await prisma.user.update({
+      where: { id: userId },
+      data: updateData,
+    });
+
+    return res.status(200).json({
+      success: true,
+      message: "Successfully updated profile",
+      data: {
+        id: updatedUser.id,
+        name: updatedUser.name,
+        email: updatedUser.email,
+      },
+    });
+  } catch (error) {
+    console.error("Error while updating profile ", error);
+    return res
+      .status(500)
+      .json({ success: false, message: "Internal server error" });
+  }
+});
+
+router.post("/change-password", verifyToken, async (req, res) => {
+  try {
+    const userId = req.userId!;
+
+    const result = changePasswordSchema.safeParse(req.body);
+    if (!result.success) {
+      return res
+        .status(400)
+        .json({ success: false, message: result.error.issues[0]?.message });
+    }
+
+    const { currentPassword, newPassword } = result.data;
+
+    const user = await prisma.user.findUnique({ where: { id: userId } });
+    if (!user) {
+      return res
+        .status(404)
+        .json({ success: false, message: "User not found" });
+    }
+
+    const isMatch = await bcrypt.compare(currentPassword, user.password);
+    if (!isMatch) {
+      return res
+        .status(401)
+        .json({ success: false, message: "Current password is incorrect" });
+    }
+
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+    await prisma.user.update({
+      where: { id: userId },
+      data: { password: hashedPassword },
+    });
+
+    return res.status(200).json({
+      success: true,
+      message: "Successfully changed password",
+    });
+  } catch (error) {
+    console.error("Error while changing password ", error);
     return res
       .status(500)
       .json({ success: false, message: "Internal server error" });
@@ -184,28 +288,27 @@ router.post("/forgot-password", async (req, res) => {
     const userExists = await prisma.user.findUnique({
       where: { email },
     });
-    if (!userExists) {
-      return res.status(400).json({
-        success: false,
-        message: "Please enter a valid user email address",
+
+    if (userExists) {
+      const token: string = generateShareToken();
+      const expiresAt: Date = new Date(Date.now() + 1000 * 60 * 60 * 2);
+
+      await prisma.forgotPassword.create({
+        data: {
+          userId: userExists.id,
+          token,
+          expiresAt,
+          emailSentAt: new Date(Date.now()),
+        },
       });
+
+      await sendForgotPasswordEmail(email, token);
     }
 
-    const token: string = generateShareToken();
-    const expiresAt: Date = new Date(Date.now() + 1000 * 60 * 60 * 2);
-
-    await prisma.forgotPassword.create({
-      data: {
-        userId: userExists.id,
-        token,
-        expiresAt,
-        emailSentAt: new Date(Date.now()),
-      },
+    return res.status(200).json({
+      success: true,
+      message: "If that email is registered, a reset link has been sent",
     });
-
-    await sendForgotPasswordEmail(email, token);
-
-    return res.status(200).json({ success: true, message: "Email sent" });
   } catch (error) {
     console.error("Error in forgot password route ", error);
     return res
@@ -231,7 +334,7 @@ router.post("/reset-password", async (req, res) => {
 
     if (!forgotPassword || new Date(Date.now()) > forgotPassword?.expiresAt) {
       return res
-        .status(404)
+        .status(400)
         .json({ success: false, message: "Token is invalid or expired" });
     }
 
