@@ -8,6 +8,8 @@ const router = express.Router();
 
 router.use(verifyToken);
 
+const typeSchema = z.enum(["EDITOR", "VIEWER"]);
+
 const createBoardSchema = z.object({
   name: z.string(),
   description: z.string().optional(),
@@ -23,6 +25,10 @@ interface updateData {
   name?: string;
   description?: string;
 }
+
+const updateRoleSchema = z.object({
+  role: typeSchema,
+});
 
 router.post("/", async (req, res) => {
   try {
@@ -127,7 +133,7 @@ router.get("/:boardId", requireBoardRole("VIEWER"), async (req, res) => {
           },
         },
         publicLink: true,
-        members: {include: { user: { select: { name: true, email: true } } }}
+        members: { include: { user: { select: { name: true, email: true } } } },
       },
     });
 
@@ -215,7 +221,10 @@ router.delete("/:boardId", requireBoardRole("OWNER"), async (req, res) => {
     }
 
     const io = req.app.get("io");
-    io.to(boardId).emit("board:deleted", { deleteResult, boardIdDeleted: boardId });
+    io.to(boardId).emit("board:deleted", {
+      deleteResult,
+      boardIdDeleted: boardId,
+    });
 
     return res.status(200).json({
       success: true,
@@ -230,39 +239,130 @@ router.delete("/:boardId", requireBoardRole("OWNER"), async (req, res) => {
   }
 });
 
-router.get("/:boardId/members", requireBoardRole("VIEWER"), async (req, res) => {
-  try {
-    const boardId = req.params.boardId! as string;
+router.get(
+  "/:boardId/members",
+  requireBoardRole("VIEWER"),
+  async (req, res) => {
+    try {
+      const boardId = req.params.boardId! as string;
 
-    const board = await prisma.board.findUnique({
-      where: { id: boardId },
-    });
-    if (!board) {
-      return res
-        .status(404)
-        .json({ success: false, message: "Board not found" });
-    }
+      const board = await prisma.board.findUnique({
+        where: { id: boardId },
+      });
+      if (!board) {
+        return res
+          .status(404)
+          .json({ success: false, message: "Board not found" });
+      }
 
-    const boardMembers = await prisma.boardMember.findMany({
-      where: {
-        boardId: board.id,
-      },
-      include: { user: { select: { name: true, email: true } } },
-    });
+      const boardMembers = await prisma.boardMember.findMany({
+        where: {
+          boardId: board.id,
+        },
+        include: { user: { select: { name: true, email: true } } },
+      });
 
-    return res
-      .status(200)
-      .json({
+      return res.status(200).json({
         success: true,
         message: "Successfully fetched all board members",
         boardMembers,
       });
-  } catch (error) {
-    console.error("Error while getting board members ", error);
-    return res
-      .status(500)
-      .json({ success: false, message: "Internal server error" });
+    } catch (error) {
+      console.error("Error while getting board members ", error);
+      return res
+        .status(500)
+        .json({ success: false, message: "Internal server error" });
+    }
   }
-});
+);
+
+router.patch(
+  "/:boardId/members/:userId/role",
+  requireBoardRole("OWNER"),
+  async (req, res) => {
+    try {
+      const { boardId, userId } = req.params as {
+        boardId: string;
+        userId: string;
+      };
+
+      const result = updateRoleSchema.safeParse(req.body);
+      if (!result.success) {
+        return res
+          .status(400)
+          .json({ success: false, message: result.error.issues[0]?.message });
+      }
+      const { role } = result.data;
+
+      const memberExists = await prisma.boardMember.findUnique({
+        where: {
+          boardId_userId: { boardId, userId },
+        },
+      });
+      if (!memberExists) {
+        return res.status(404).json({
+          success: false,
+          message: "This user is not member of this board",
+        });
+      }
+
+      const updatedMember = await prisma.boardMember.update({
+        where: {
+          boardId_userId: { boardId, userId },
+        },
+        data: {
+          role,
+        },
+      });
+
+      return res.status(200).json({
+        success: true,
+        message: "Successfully updated the role",
+        updatedMember,
+      });
+    } catch (error) {
+      console.error("Error while updated a member role ", error);
+      return res
+        .status(500)
+        .json({ success: false, message: "Internal server error" });
+    }
+  }
+);
+
+router.delete(
+  "/:boardId/members/:userId",
+  requireBoardRole("OWNER"),
+  async (req, res) => {
+    try {
+      const { boardId, userId } = req.params as {
+        boardId: string;
+        userId: string;
+      };
+
+      const memberExists = await prisma.boardMember.findUnique({
+        where: { boardId_userId: { boardId, userId } },
+      });
+      if (!memberExists) {
+        return res.status(400).json({
+          success: false,
+          message: "This user is not member of this board",
+        });
+      }
+
+      await prisma.boardMember.delete({
+        where: { boardId_userId: { boardId, userId } },
+      });
+      return res.status(200).json({
+        success: true,
+        deletedMember: { boardMemberId: memberExists.id, userId },
+      });
+    } catch (error) {
+      console.error("Error while deleting a member ", error);
+      return res
+        .status(500)
+        .json({ success: false, message: "Internal server error" });
+    }
+  }
+);
 
 export default router;
