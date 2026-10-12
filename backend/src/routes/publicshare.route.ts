@@ -4,6 +4,7 @@ import prisma from "../lib/prisma.ts";
 import { generateShareToken } from "../utils/token.ts";
 import { z } from "zod";
 import { requireBoardRole } from "../middleware/boardAccess.middleware.ts";
+import { evictReadOnlyFromBoard } from "../socket/index.ts";
 
 const router = express.Router();
 
@@ -151,6 +152,11 @@ router.patch(
         },
       });
 
+      if (!enabled) {
+        const io = req.app.get("io");
+        if (io) evictReadOnlyFromBoard(io, board.id);
+      }
+
       return res.status(200).json({
         success: true,
         message: "Toggled share status",
@@ -185,6 +191,9 @@ router.delete(
         where: { boardId },
       });
 
+      const io = req.app.get("io");
+      if (io) evictReadOnlyFromBoard(io, boardId);
+
       return res.status(200).json({
         success: true,
         message: "Successfully deleted the board public link",
@@ -198,5 +207,42 @@ router.delete(
     }
   }
 );
+
+router.post("/rotate/:boardId", requireBoardRole("OWNER"), async (req, res) => {
+  try {
+    const boardId = req.params.boardId as string;
+
+    const link = await prisma.publicBoardLink.findUnique({
+      where: { boardId },
+    });
+    if (!link) {
+      return res
+        .status(404)
+        .json({
+          success: false,
+          message: "No public link exists for this board",
+        });
+    }
+
+    const updated = await prisma.publicBoardLink.update({
+      where: { boardId },
+      data: { token: generateShareToken() },
+    });
+
+    const io = req.app.get("io");
+    if (io) evictReadOnlyFromBoard(io, boardId);
+
+    return res.status(200).json({
+      success: true,
+      message: "Successfully rotated the public token",
+      token: updated.token,
+    });
+  } catch (error) {
+    console.error("Error while rotating public token ", error);
+    return res
+      .status(500)
+      .json({ success: false, message: "Internal server error" });
+  }
+});
 
 export default router;

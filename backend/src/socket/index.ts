@@ -1,5 +1,11 @@
-import { Server, Socket } from "socket.io";
-import { addToBoard, removeFromBoard } from "./presence.ts";
+import type { Socket, Server } from "socket.io";
+import { z } from "zod";
+import {
+  getBoardCount,
+  getBoardUsers,
+  removeFromBoard,
+  type SocketUser,
+} from "./presence.ts";
 import { verifyTokenSocket } from "../middleware/auth.middleware.ts";
 
 const makeGuestName = () => {
@@ -11,17 +17,36 @@ const makeGuestName = () => {
     "Lynx",
     "Giraffe",
     "Zebra",
+    "Tiger",
+    "Rat",
   ];
   const n = animals[Math.floor(Math.random() * animals.length)];
   return `Anonymous ${n}`;
 };
 
-type ActionType = "creating" | "editing" | "moving";
+type ActionType = "editing" | "creating" | "moving";
+type EphemeralAction = { type: ActionType; targetId: string };
 
-type EphermeralAction = {
-  type: ActionType;
-  targetId: string;
-};
+const joinSchema = z.object({
+  boardId: z.string().min(1),
+  publicToken: z.string().optional(),
+});
+const leaveSchema = z.object({
+  boardId: z.string().min(1),
+});
+const creatingSchema = z.object({
+  boardId: z.string().min(1),
+  columnId: z.string().min(1),
+});
+const editingSchema = z.object({
+  boardId: z.string().min(1),
+  cardId: z.string().min(1),
+});
+const movingSchema = z.object({
+  boardId: z.string().min(1),
+  cardId: z.string().min(1),
+});
+const stopSchema = z.object({ boardId: z.string().min(1) });
 
 const setAction = (
   socket: Socket,
@@ -30,17 +55,13 @@ const setAction = (
   targetId: string
 ) => {
   clearAction(socket, boardId);
-  socket.data.activeAction = { type, targetId } as EphermeralAction;
-  socket.to(boardId).emit(`user:${type}`, {
-    user: socket.data.user,
-    targetId,
-  });
+  socket.data.activeAction = { type, targetId } as EphemeralAction;
+  socket.to(boardId).emit(`user:${type}`, { user: socket.data.user, targetId });
 };
 
 const clearAction = (socket: Socket, boardId: string) => {
-  const action = socket.data.activeAction as EphermeralAction | undefined;
+  const action = socket.data.activeAction as EphemeralAction | undefined;
   if (!action) return;
-
   socket.to(boardId).emit(`user:${action.type}:stop`, {
     user: socket.data.user,
     targetId: action.targetId,
@@ -48,10 +69,34 @@ const clearAction = (socket: Socket, boardId: string) => {
   socket.data.activeAction = null;
 };
 
-export const registerSocketHandlers = (io: Server) => {
+const canWrite = (socket: Socket) =>
+  !socket.data.readOnly ||
+  socket.data.role === "OWNER" ||
+  socket.data.role === "EDITOR";
+
+export const evictReadOnlyFromBoard = (io: Server, boardId: string) => {
+  io.sockets.sockets.forEach((s) => {
+    if (s.data?.readOnly && s.rooms.has(boardId)) {
+      s.emit("board:revoked", { boardId });
+      const user = s.data.user as SocketUser | undefined;
+      s.leave(boardId);
+      if (user) removeFromBoard(boardId, user.id, s.id);
+    }
+  });
+  io.to(boardId).emit("presence:update", {
+    count: getBoardCount(boardId),
+    users: getBoardUsers(boardId),
+  });
+};
+
+export const registerSocketHandles = (io: Server) => {
   io.use((socket, next) => {
+    socket.data.readOnly = false;
+    socket.data.role = null;
+
     const token =
       socket.handshake.auth?.token || socket.handshake.headers?.token;
+
     if (token) {
       try {
         const payload = verifyTokenSocket(token);
@@ -61,10 +106,6 @@ export const registerSocketHandlers = (io: Server) => {
           isGuest: false,
         };
       } catch (error) {
-        console.error(
-          "Error while verifying token in socket connection ",
-          error
-        );
         socket.data.user = {
           id: socket.id,
           name: makeGuestName(),
@@ -81,63 +122,5 @@ export const registerSocketHandlers = (io: Server) => {
     next();
   });
 
-  io.on("connection", (socket: Socket) => {
-    socket.on("board:join", ({ boardId }: { boardId: string }) => {
-      socket.join(boardId);
-      socket.data.boardId = boardId;
-
-      const count = addToBoard(boardId, socket.data.user.id, socket.id);
-
-      io.to(boardId).emit("presence:update", {
-        count,
-        joined: socket.data.user,
-      });
-    });
-
-    socket.on("board:leave", ({ boardId }: { boardId: string }) => {
-      clearAction(socket, boardId);
-      socket.leave(boardId);
-
-      const count = removeFromBoard(boardId, socket.data.user.id, socket.id);
-      io.to(boardId).emit("presence:update", { count, left: socket.data.user });
-
-      if (socket.data.boardId === boardId) {
-        socket.data.boardId = null;
-      }
-    });
-
-    socket.on(
-      "card:creating",
-      ({ boardId, columnId }: { boardId: string; columnId: string }) => {
-        setAction(socket, boardId, "creating", columnId);
-      }
-    );
-
-    socket.on(
-      "card:editing",
-      ({ boardId, cardId }: { boardId: string; cardId: string }) => {
-        setAction(socket, boardId, "editing", cardId);
-      }
-    );
-
-    socket.on(
-      "card:moving",
-      ({ boardId, cardId }: { boardId: string; cardId: string }) => {
-        setAction(socket, boardId, "moving", cardId);
-      }
-    );
-
-    socket.on("action:stop", ({ boardId }: { boardId: string }) => {
-      clearAction(socket, boardId);
-    });
-
-    socket.on("disconnect", () => {
-      const { boardId, user } = socket.data;
-      if (boardId && user) {
-        clearAction(socket, boardId);
-        const count = removeFromBoard(boardId, user.id, socket.id);
-        io.to(boardId).emit("presence:update", { count, left: user });
-      }
-    });
-  });
+  io.on("connection", (socket: Socket) => {});
 };
