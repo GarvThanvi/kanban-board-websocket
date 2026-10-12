@@ -172,6 +172,12 @@ router.post("/invite/:token/accept", verifyToken, async (req, res) => {
       }),
     ]);
 
+    const io = req.app.get("io");
+    io.to(boardInvite.boardId).emit("member:added", {
+      boardId: boardInvite.boardId,
+      member: newBoardMember,
+    });
+
     return res.status(200).json({
       success: true,
       message: "Successfully accepted board invite",

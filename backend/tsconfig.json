@@ -17,8 +17,9 @@
 
     // Other Outputs
     "sourceMap": true,
-    "declaration": true,
-    "declarationMap": true,
+
+    // Emit: rewrite relative .ts imports to .js so the output runs on node
+    "rewriteRelativeImportExtensions": true,
 
     // Stricter Typechecking Options
     "noUncheckedIndexedAccess": true,
@@ -39,8 +40,8 @@
     "isolatedModules": true,
     "moduleDetection": "force",
     "skipLibCheck": true,
-    "allowImportingTsExtensions": true,
-    "noEmit": true
+    "allowImportingTsExtensions": true
   },
-  "include": ["src"]
+  "include": ["src"],
+  "exclude": ["src/generated"]
 }

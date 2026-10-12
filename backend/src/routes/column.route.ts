@@ -10,7 +10,7 @@ router.use(verifyToken);
 
 const addColumnSchema = z.object({
   name: z.string(),
-  position: z.number().positive(),
+  position: z.number().positive().optional(),
 });
 
 const renameColumnSchema = z.object({
@@ -54,11 +54,17 @@ router.post("/:boardId", requireBoardRole("EDITOR"), async (req, res) => {
         .json({ success: false, message: "Board not found" });
     }
 
+    const lastColumn = await prisma.column.findFirst({
+      where: { boardId: board.id },
+      orderBy: { position: "desc" },
+    });
+    const nextPosition = (lastColumn?.position ?? 0) + 1;
+
     const newColumn = await prisma.column.create({
       data: {
         boardId: board.id,
         name: newColumnData.name,
-        position: newColumnData.position,
+        position: nextPosition,
       },
     });
 
@@ -196,14 +202,18 @@ router.patch(
           .json({ success: false, message: "Invalid columns provided" });
       }
 
+      const orderedColumns = [...repositionData.columns].sort(
+        (a, b) => a.position - b.position
+      );
+
       await prisma.$transaction(
-        repositionData.columns.map((col) =>
+        orderedColumns.map((col, index) =>
           prisma.column.update({
             where: {
               id: col.columnId,
             },
             data: {
-              position: col.position,
+              position: index + 1,
             },
           })
         )

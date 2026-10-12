@@ -11,7 +11,7 @@ router.use(verifyToken);
 const createCardSchema = z.object({
   title: z.string(),
   description: z.string().optional(),
-  position: z.number().positive(),
+  position: z.number().positive().optional(),
 });
 type createCard = z.infer<typeof createCardSchema>;
 
@@ -77,11 +77,17 @@ router.post(
           .json({ success: false, message: "No such column exists" });
       }
 
+      const lastCard = await prisma.card.findFirst({
+        where: { columnId },
+        orderBy: { position: "desc" },
+      });
+      const nextPosition = (lastCard?.position ?? 0) + 1;
+
       const newCard = await prisma.card.create({
         data: {
           title: createCardData.title,
           description: createCardData.description || "",
-          position: createCardData.position,
+          position: nextPosition,
           createdById: userId,
           columnId: columnId,
         },
@@ -255,14 +261,18 @@ router.patch(
             .json({ success: false, message: "Invalid cards provided" });
         }
 
+        const orderedCards = [...reorderCardData.cards].sort(
+          (a, b) => a.position - b.position
+        );
+
         await prisma.$transaction(
-          reorderCardData.cards.map((card) =>
+          orderedCards.map((card, index) =>
             prisma.card.update({
               where: {
                 id: card.cardId,
               },
               data: {
-                position: card.position,
+                position: index + 1,
               },
             })
           )
@@ -302,20 +312,38 @@ router.patch(
             .json({ success: false, message: "Invalid cards provided" });
         }
 
-        await prisma.$transaction(
-          reorderCardData.cards.map((card) =>
+        const oldColumnCardsBefore = await prisma.card.findMany({
+          where: {
+            columnId: reorderCardData.oldColumnId,
+            NOT: { id: cardId },
+          },
+          orderBy: { position: "asc" },
+        });
+
+        const orderedCards = [...reorderCardData.cards].sort(
+          (a, b) => a.position - b.position
+        );
+
+        await prisma.$transaction([
+          ...orderedCards.map((card, index) =>
             prisma.card.update({
               where: { id: card.cardId },
               data:
                 card.cardId === cardId
                   ? {
                       columnId: reorderCardData.newColumnId,
-                      position: card.position,
+                      position: index + 1,
                     }
-                  : { position: card.position },
+                  : { position: index + 1 },
             })
-          )
-        );
+          ),
+          ...oldColumnCardsBefore.map((card, index) =>
+            prisma.card.update({
+              where: { id: card.id },
+              data: { position: index + 1 },
+            })
+          ),
+        ]);
       }
 
       const [oldColumnCards, newColumnCards] = await Promise.all([

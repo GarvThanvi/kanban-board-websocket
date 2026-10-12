@@ -3,6 +3,11 @@ import { z } from "zod";
 import { verifyToken } from "../middleware/auth.middleware.js";
 import prisma from "../lib/prisma.js";
 import { requireBoardRole } from "../middleware/boardAccess.middleware.ts";
+import {
+  applyRoleChangeToUserSockets,
+  evictEveryoneFromBoard,
+  removeUserFromBoard,
+} from "../socket/index.ts";
 
 const router = express.Router();
 
@@ -217,6 +222,7 @@ router.delete("/:boardId", requireBoardRole("OWNER"), async (req, res) => {
       deleteResult,
       boardIdDeleted: boardId,
     });
+    evictEveryoneFromBoard(io, boardId);
 
     return res.status(200).json({
       success: true,
@@ -298,6 +304,13 @@ router.patch(
         });
       }
 
+      if (memberExists.role === "OWNER") {
+        return res.status(400).json({
+          success: false,
+          message: "Cannot change the role of the board owner",
+        });
+      }
+
       const updatedMember = await prisma.boardMember.update({
         where: {
           boardId_userId: { boardId, userId },
@@ -305,6 +318,14 @@ router.patch(
         data: {
           role,
         },
+      });
+
+      const io = req.app.get("io");
+      applyRoleChangeToUserSockets(io, boardId, userId, role);
+      io.to(boardId).emit("member:updated", {
+        boardId,
+        userId,
+        role,
       });
 
       return res.status(200).json({
@@ -341,9 +362,21 @@ router.delete(
         });
       }
 
+      if (memberExists.role === "OWNER") {
+        return res.status(400).json({
+          success: false,
+          message: "The board owner cannot be removed",
+        });
+      }
+
       await prisma.boardMember.delete({
         where: { boardId_userId: { boardId, userId } },
       });
+
+      const io = req.app.get("io");
+      removeUserFromBoard(io, boardId, userId);
+      io.to(boardId).emit("member:removed", { boardId, userId });
+
       return res.status(200).json({
         success: true,
         deletedMember: { boardMemberId: memberExists.id, userId },
