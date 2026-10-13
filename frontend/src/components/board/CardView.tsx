@@ -2,8 +2,8 @@ import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { AlignLeft } from "lucide-react";
 import { usePresence, activityOf } from "../../stores/presence";
-import { Avatar } from "../ui/Avatar";
-import { Tooltip } from "../ui/Tooltip";
+import { ActivityBadge } from "./ActivityBadge";
+import { activityLabel } from "../../lib/activity";
 import { avatarColor, cn } from "../../lib/utils";
 import type { Card } from "../../lib/types";
 
@@ -61,10 +61,11 @@ export function CardView({
         <AlignLeft className="mt-1.5 size-3.5 text-text-faint" />
       )}
       {editingEntry && (
-        <div className="absolute -right-1.5 -top-1.5">
-          <Tooltip side="bottom" label={`${editingEntry.user.name} is here`}>
-            <Avatar name={editingEntry.user.name} size={18} />
-          </Tooltip>
+        <div className="mt-2">
+          <ActivityBadge
+            user={editingEntry.user}
+            label={activityLabel(editingEntry.type)}
+          />
         </div>
       )}
     </div>

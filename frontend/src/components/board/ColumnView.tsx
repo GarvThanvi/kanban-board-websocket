@@ -11,6 +11,8 @@ import { toast } from "../../stores/toast";
 import { usePresence, activityOf } from "../../stores/presence";
 import { CardView } from "./CardView";
 import { AddCardComposer } from "./AddCardComposer";
+import { ActivityBadge } from "./ActivityBadge";
+import { activityLabel } from "../../lib/activity";
 import { Button } from "../ui/Button";
 import { Dropdown, DropdownItem } from "../ui/Dropdown";
 import { Modal } from "../ui/Modal";
@@ -59,6 +61,8 @@ onCardClick,
   const editingEntry =
     activityOf(activity, "columnEditing", column.id) ??
     activityOf(activity, "columnMoving", column.id);
+
+  const creatingEntry = activityOf(activity, "creating", column.id);
 
   const commitRename = async () => {
     setRenaming(false);
@@ -174,6 +178,12 @@ onCardClick,
           ref={setBodyRef}
           className="flex min-h-1 flex-1 flex-col gap-2 overflow-y-auto px-2.5 pb-1"
         >
+          {editingEntry && (
+            <ActivityBadge
+              user={editingEntry.user}
+              label={activityLabel(editingEntry.type)}
+            />
+          )}
           <SortableContext
             items={column.cards.map((c) => c.id)}
             strategy={verticalListSortingStrategy}
@@ -189,6 +199,12 @@ onCardClick,
             ))}
           </SortableContext>
         </div>
+
+        {creatingEntry && (
+          <div className="px-2.5 pb-1">
+            <ActivityBadge user={creatingEntry.user} label="is adding a card…" />
+          </div>
+        )}
 
         {!readOnly && (
           <AddCardComposer

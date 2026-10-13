@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { Trash2 } from "lucide-react";
 import { api } from "../../lib/api";
 import { updateBoardColumns } from "../../lib/boardCache";
@@ -22,15 +22,26 @@ export function CardModal({
 }) {
   const [confirmDelete, setConfirmDelete] = useState(false);
   const queryClient = useQueryClient();
+  const stopTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   if (!card) return null;
 
   const emitEditing = () => {
-    if (!readOnly)
-      getSocket().emit("card:editing", { boardId, cardId: card.id });
+    if (readOnly) return;
+    // cancel a pending stop from focus moving between fields
+    if (stopTimer.current) {
+      clearTimeout(stopTimer.current);
+      stopTimer.current = null;
+    }
+    getSocket().emit("card:editing", { boardId, cardId: card.id });
   };
   const stopEditing = () => {
-    if (!readOnly) getSocket().emit("action:stop", { boardId });
+    if (readOnly) return;
+    if (stopTimer.current) clearTimeout(stopTimer.current);
+    stopTimer.current = setTimeout(() => {
+      getSocket().emit("action:stop", { boardId });
+      stopTimer.current = null;
+    }, 150);
   };
 
   const saveTitle = async () => {

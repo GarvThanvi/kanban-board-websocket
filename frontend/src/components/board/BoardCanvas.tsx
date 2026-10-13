@@ -19,6 +19,7 @@ import { toast } from "../../stores/toast";
 import { usePresence } from "../../stores/presence";
 import { ColumnView } from "./ColumnView";
 import { AddColumnButton } from "./AddColumnButton";
+import { ActivityBadge } from "./ActivityBadge";
 import { cn } from "../../lib/utils";
 import type { Card, ColumnWithCards } from "../../lib/types";
 
@@ -406,9 +407,7 @@ function PresenceGuestColumnPlaceholder({ boardId }: { boardId: string }) {
   if (!entry) return null;
   return (
     <div className="w-72 shrink-0 rounded-xl border border-dashed border-border bg-surface/50 p-4">
-      <p className="text-[13px] italic text-text-faint">
-        {entry.user.name} is adding a column…
-      </p>
+      <ActivityBadge user={entry.user} label="is adding a column…" />
     </div>
   );
 }
