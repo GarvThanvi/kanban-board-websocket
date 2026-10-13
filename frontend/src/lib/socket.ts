@@ -1,0 +1,18 @@
+import { io, type Socket } from "socket.io-client";
+import { useAuth } from "../stores/auth";
+
+let socket: Socket | null = null;
+
+export function getSocket(): Socket {
+  if (!socket) {
+    socket = io({
+      auth: (cb) => cb({ token: useAuth.getState().token ?? undefined }),
+    });
+  }
+  return socket;
+}
+
+export function disconnectSocket() {
+  socket?.disconnect();
+  socket = null;
+}

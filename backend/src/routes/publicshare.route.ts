@@ -12,9 +12,7 @@ const toggleBoardSchema = z.object({
   enabled: z.boolean(),
 });
 
-router.use(verifyToken);
-
-router.post("/share/:boardId", requireBoardRole("OWNER"), async (req, res) => {
+router.post("/share/:boardId", verifyToken, requireBoardRole("OWNER"), async (req, res) => {
   try {
     const boardId = req.params.boardId as string;
 
@@ -108,6 +106,7 @@ router.get("/:token", async (req, res) => {
 
 router.patch(
   "/toggle-share/:boardId",
+  verifyToken,
   requireBoardRole("OWNER"),
   async (req, res) => {
     try {
@@ -173,6 +172,7 @@ router.patch(
 
 router.delete(
   "/share/:boardId/delete",
+  verifyToken,
   requireBoardRole("OWNER"),
   async (req, res) => {
     try {
@@ -208,7 +208,7 @@ router.delete(
   }
 );
 
-router.post("/rotate/:boardId", requireBoardRole("OWNER"), async (req, res) => {
+router.post("/rotate/:boardId", verifyToken, requireBoardRole("OWNER"), async (req, res) => {
   try {
     const boardId = req.params.boardId as string;
 

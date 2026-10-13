@@ -10,10 +10,18 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@dnd-kit/core": "^6.3.1",
+    "@dnd-kit/sortable": "^10.0.0",
+    "@dnd-kit/utilities": "^3.2.2",
     "@tailwindcss/vite": "^4.3.3",
+    "@tanstack/react-query": "^5.104.2",
+    "lucide-react": "^1.56.0",
     "react": "^19.2.8",
     "react-dom": "^19.2.8",
-    "tailwindcss": "^4.3.3"
+    "react-router-dom": "^7.18.4",
+    "socket.io-client": "^4.8.4",
+    "tailwindcss": "^4.3.3",
+    "zustand": "^5.0.15"
   },
   "devDependencies": {
     "@types/node": "^24.13.3",
