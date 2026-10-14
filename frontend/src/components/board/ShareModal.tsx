@@ -46,7 +46,7 @@ export function ShareModal({
             onClick={() => setTab(key)}
             className={cn(
               "-mb-px border-b-2 border-transparent px-3 pb-2 text-[13px] font-medium text-text-muted hover:text-text",
-              tab === key && "border-accent text-text"
+              tab === key && "border-text/70 text-text"
             )}
           >
             {label}
@@ -131,7 +131,7 @@ function MembersTab({ board, ownerName }: { board: BoardDetail; ownerName: strin
               align="right"
               trigger={
                 <Button size="sm" variant="secondary">
-                  {m.role}
+                  {m.role.toLowerCase()}
                 </Button>
               }
             >
@@ -165,7 +165,7 @@ function MembersTab({ board, ownerName }: { board: BoardDetail; ownerName: strin
 
       {(pending.data?.pendingInvitations.length ?? 0) > 0 && (
         <>
-          <p className="mt-3 mb-1 text-xs font-medium uppercase tracking-wide text-text-faint">
+          <p className="mt-3 mb-1 text-xs font-medium text-text-faint">
             Pending invitations
           </p>
           {pending.data!.pendingInvitations.map((inv) => (
@@ -175,7 +175,7 @@ function MembersTab({ board, ownerName }: { board: BoardDetail; ownerName: strin
             >
               <p className="text-[13px] text-text-muted">{inv.email}</p>
               <div className="flex items-center gap-2">
-                <Badge color="accent">{inv.role}</Badge>
+                <Badge color="muted">{inv.role}</Badge>
                 <button
                   onClick={() => revoke.mutate(inv.id)}
                   className="rounded-md p-1 text-text-faint hover:bg-white/5 hover:text-danger"
@@ -239,13 +239,13 @@ function InviteTab({ boardId }: { boardId: string }) {
               className={cn(
                 "flex-1 rounded-lg border px-3 py-2.5 text-left text-[13px] transition-colors",
                 role === r
-                  ? "border-accent bg-accent/10"
+                  ? "border-border-strong bg-white/[0.07]"
                   : "border-border bg-surface-2 hover:border-border-strong"
               )}
             >
               <span className="flex items-center justify-between">
                 <span className="font-medium capitalize">{r.toLowerCase()}</span>
-                {role === r && <Check className="size-3.5 text-accent" />}
+                {role === r && <Check className="size-3.5 text-text" />}
               </span>
               <span className="block text-xs text-text-faint">
                 {r === "EDITOR" ? "Can edit boards and cards" : "Read-only access"}
@@ -368,7 +368,7 @@ function PublicTab({ board }: { board: BoardDetail }) {
           disabled={toggle.isPending}
           className={cn(
             "relative h-5 w-9 rounded-full transition-colors",
-            enabled ? "bg-accent" : "bg-surface-3 border border-border"
+            enabled ? "bg-signal" : "bg-surface-3 border border-border"
           )}
         >
           <span
@@ -416,4 +416,3 @@ function PublicTab({ board }: { board: BoardDetail }) {
     </div>
   );
 }
-

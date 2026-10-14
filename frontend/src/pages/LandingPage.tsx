@@ -6,11 +6,13 @@ import { Footer } from "../components/landing/Footer";
 
 export default function LandingPage() {
   return (
-    <div className="bg-bg">
+    <div className="overflow-hidden bg-bg">
       <LandingNav />
-      <Hero />
-      <Features />
-      <Highlight />
+      <main>
+        <Hero />
+        <Features />
+        <Highlight />
+      </main>
       <Footer />
     </div>
   );

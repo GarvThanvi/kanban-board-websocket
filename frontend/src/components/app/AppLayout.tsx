@@ -1,11 +1,14 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { NavLink, Outlet, useNavigate } from "react-router-dom";
-import { Layers, LayoutGrid, LogOut, Settings } from "lucide-react";
+import { LayoutGrid, LogOut, Search, Settings } from "lucide-react";
 import { useAuth } from "../../stores/auth";
 import { api } from "../../lib/api";
 import { disconnectSocket } from "../../lib/socket";
 import { Avatar } from "../ui/Avatar";
 import { cn } from "../../lib/utils";
+import { BrandMark } from "../ui/BrandMark";
+import { CommandPalette } from "./CommandPalette";
+import { CreateBoardModal } from "./CreateBoardModal";
 
 const NAV_ITEMS = [
   { to: "/boards", label: "Boards", icon: LayoutGrid },
@@ -15,6 +18,12 @@ const NAV_ITEMS = [
 export function AppLayout() {
   const { token, user, setAuth, clearAuth } = useAuth();
   const navigate = useNavigate();
+  const [paletteOpen, setPaletteOpen] = useState(false);
+  const [createBoardOpen, setCreateBoardOpen] = useState(false);
+  const modifierKey =
+    typeof navigator !== "undefined" && /Mac|iPhone|iPad/.test(navigator.platform)
+      ? "⌘"
+      : "Ctrl";
 
   useEffect(() => {
     if (token && !user) {
@@ -28,6 +37,17 @@ export function AppLayout() {
     }
   }, [token, user, setAuth, clearAuth, navigate]);
 
+  useEffect(() => {
+    const onKeyDown = (event: KeyboardEvent) => {
+      if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "k") {
+        event.preventDefault();
+        setPaletteOpen(true);
+      }
+    };
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, []);
+
   const logout = () => {
     clearAuth();
     disconnectSocket();
@@ -35,44 +55,63 @@ export function AppLayout() {
   };
 
   return (
-    <div className="flex h-screen overflow-hidden bg-bg">
-      <aside className="flex w-60 shrink-0 flex-col border-r border-border bg-surface">
-        <div className="flex items-center gap-2 px-4 py-3.5">
-          <span className="flex size-6 items-center justify-center rounded-md bg-accent/15">
-            <Layers className="size-3.5 text-accent" />
+    <div className="flex h-dvh overflow-hidden bg-bg">
+      <aside className="flex w-[58px] shrink-0 flex-col border-r border-border bg-surface md:w-[224px]">
+        <div className="flex h-[58px] items-center justify-center border-b border-border px-3 md:justify-start md:px-4">
+          <BrandMark size={29} />
+          <span className="ml-2.5 hidden text-[14px] font-semibold tracking-[-0.035em] md:inline">
+            flowline
           </span>
-          <span className="text-[15px] font-semibold tracking-tight">Flowline</span>
         </div>
-        <nav className="mt-2 flex flex-col gap-0.5">
+        <nav className="mt-3 flex flex-col gap-1 px-1.5 md:px-2">
           {NAV_ITEMS.map((item) => (
             <NavLink
               key={item.to}
               to={item.to}
               className={({ isActive }) =>
                 cn(
-                  "mx-2 flex items-center gap-2.5 rounded-md px-2.5 py-1.5 text-[13.5px] text-text-muted hover:bg-white/5 hover:text-text",
-                  isActive && "bg-white/5 text-text"
+                  "flex h-9 items-center justify-center gap-2.5 rounded-md px-2 text-[13px] transition-colors md:justify-start md:px-2.5",
+                  isActive
+                    ? "bg-white/[0.065] text-text"
+                    : "text-text-muted hover:bg-white/[0.04] hover:text-text"
                 )
               }
+              title={item.label}
+              aria-label={item.label}
             >
-              <item.icon className="size-4" />
-              {item.label}
+              <item.icon className="size-[16px] shrink-0" strokeWidth={1.7} />
+              <span className="hidden md:inline">{item.label}</span>
             </NavLink>
           ))}
         </nav>
-        <div className="mt-auto p-2">
-          <div className="flex items-center gap-2.5 rounded-md px-2 py-2">
-            <Avatar name={user?.name ?? "?"} size={28} />
-            <div className="min-w-0 flex-1">
-              <p className="truncate text-[13px] font-medium">{user?.name}</p>
-              <p className="truncate text-xs text-text-faint">{user?.email}</p>
+        <div className="mt-3 px-1.5 md:px-2">
+          <button
+            onClick={() => setPaletteOpen(true)}
+            className="flex h-9 w-full items-center justify-center gap-2.5 rounded-md px-2 text-text-muted transition-colors hover:bg-white/[0.04] hover:text-text md:justify-start md:px-2.5"
+            title={`Search boards and actions (${modifierKey}+K)`}
+            aria-label="Search boards and actions"
+          >
+            <Search className="size-[16px] shrink-0" strokeWidth={1.7} />
+            <span className="hidden flex-1 text-left text-[13px] md:inline">Jump to</span>
+            <kbd className="hidden rounded border border-border px-1.5 font-mono text-[9px] text-text-faint lg:inline-flex">
+              {modifierKey} K
+            </kbd>
+          </button>
+        </div>
+        <div className="mt-auto border-t border-border p-2">
+          <div className="flex flex-col items-center justify-center gap-1 rounded-md py-1 md:flex-row md:gap-2.5 md:justify-start md:px-1.5 md:py-1.5">
+            <Avatar name={user?.name ?? "?"} size={27} />
+            <div className="hidden min-w-0 flex-1 md:block">
+              <p className="truncate text-[12px] font-medium">{user?.name}</p>
+              <p className="truncate text-[10px] text-text-faint">{user?.email}</p>
             </div>
             <button
               onClick={logout}
-              className="rounded-md p-1.5 text-text-muted hover:bg-white/5 hover:text-text"
+              className="inline-flex rounded-md p-1.5 text-text-muted transition-colors hover:bg-white/[0.05] hover:text-text"
               title="Log out"
+              aria-label="Log out"
             >
-              <LogOut className="size-4" />
+              <LogOut className="size-3.5" />
             </button>
           </div>
         </div>
@@ -80,6 +119,15 @@ export function AppLayout() {
       <main className="min-w-0 flex-1 overflow-y-auto">
         <Outlet />
       </main>
+      <CommandPalette
+        open={paletteOpen}
+        onClose={() => setPaletteOpen(false)}
+        onCreateBoard={() => setCreateBoardOpen(true)}
+      />
+      <CreateBoardModal
+        open={createBoardOpen}
+        onClose={() => setCreateBoardOpen(false)}
+      />
     </div>
   );
 }

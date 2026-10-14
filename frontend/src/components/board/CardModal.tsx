@@ -134,7 +134,7 @@ export function CardModal({
           onBlur={saveDescription}
           rows={4}
           placeholder={readOnly ? "No description" : "Add a description…"}
-          className="w-full resize-none rounded-lg bg-surface-2 border border-border px-3 py-2 text-sm outline-none placeholder:text-text-faint focus:border-accent/60 disabled:opacity-70"
+          className="w-full resize-none rounded-lg border border-border bg-surface-2 px-3 py-2 text-sm outline-none placeholder:text-text-faint focus-visible:border-border-strong focus-visible:ring-2 focus-visible:ring-white/10 disabled:opacity-70"
         />
         {!readOnly && (
           <div className="flex justify-end">

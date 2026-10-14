@@ -5,17 +5,22 @@ import { toast } from "../stores/toast";
 import { Button } from "../components/ui/Button";
 import { Input } from "../components/ui/Input";
 
-function Card({
+function SettingsSection({
   title,
+  description,
   children,
 }: {
   title: string;
+  description: string;
   children: React.ReactNode;
 }) {
   return (
-    <section className="rounded-xl border border-border bg-surface p-6">
-      <h2 className="mb-4 text-sm font-semibold">{title}</h2>
-      {children}
+    <section className="grid gap-5 border-t border-border py-7 sm:grid-cols-[180px_minmax(0,1fr)] sm:gap-8">
+      <div>
+        <h2 className="text-[13px] font-medium">{title}</h2>
+        <p className="mt-1.5 max-w-[23ch] text-[12px] leading-5 text-text-faint">{description}</p>
+      </div>
+      <div>{children}</div>
     </section>
   );
 }
@@ -76,12 +81,15 @@ export default function SettingsPage() {
   };
 
   return (
-    <div className="mx-auto max-w-2xl px-8 py-10">
-      <h1 className="mb-8 text-xl font-semibold">Settings</h1>
+    <div className="mx-auto max-w-[920px] px-5 py-8 sm:px-8 sm:py-10">
+      <div className="mb-8">
+        <h1 className="text-[25px] font-medium tracking-[-0.05em]">Settings</h1>
+        <p className="mt-1.5 text-[13px] text-text-muted">Your account and sign-in details.</p>
+      </div>
 
-      <div className="flex flex-col gap-6">
-        <Card title="Profile">
-          <form onSubmit={saveProfile} className="flex flex-col gap-4">
+      <div>
+        <SettingsSection title="Profile" description="The name and address teammates see when they share work with you.">
+          <form onSubmit={saveProfile} className="grid gap-4 sm:grid-cols-2">
             <Input
               label="Name"
               id="profile-name"
@@ -98,25 +106,27 @@ export default function SettingsPage() {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
             />
-            <div className="flex justify-end">
+            <div className="flex justify-end sm:col-span-2">
               <Button type="submit" loading={savingProfile}>
                 Save changes
               </Button>
             </div>
           </form>
-        </Card>
+        </SettingsSection>
 
-        <Card title="Change password">
-          <form onSubmit={savePassword} className="flex flex-col gap-4">
-            <Input
-              label="Current password"
-              id="current-password"
-              type="password"
-              required
-              value={currentPassword}
-              onChange={(e) => setCurrentPassword(e.target.value)}
-              placeholder="••••••••"
-            />
+        <SettingsSection title="Change password" description="Choose a unique password to protect your Flowline account.">
+          <form onSubmit={savePassword} className="grid gap-4 sm:grid-cols-2">
+            <div className="sm:col-span-2">
+              <Input
+                label="Current password"
+                id="current-password"
+                type="password"
+                required
+                value={currentPassword}
+                onChange={(e) => setCurrentPassword(e.target.value)}
+                placeholder="••••••••"
+              />
+            </div>
             <Input
               label="New password"
               id="new-password"
@@ -136,13 +146,13 @@ export default function SettingsPage() {
               onChange={(e) => setConfirm(e.target.value)}
               placeholder="Repeat new password"
             />
-            <div className="flex justify-end">
+            <div className="flex justify-end sm:col-span-2">
               <Button type="submit" loading={savingPassword}>
                 Update password
               </Button>
             </div>
           </form>
-        </Card>
+        </SettingsSection>
       </div>
     </div>
   );

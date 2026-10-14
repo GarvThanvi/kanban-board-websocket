@@ -1,10 +1,9 @@
 import { cn } from "../../lib/utils";
 
 const COLORS = {
-  accent: "bg-accent/15 text-accent",
   muted: "bg-white/5 text-text-muted",
-  green: "bg-emerald-500/15 text-emerald-400",
   yellow: "bg-amber-500/15 text-amber-400",
+  signal: "bg-signal/12 text-signal",
 } as const;
 
 export function Badge({
@@ -16,6 +15,7 @@ export function Badge({
   color?: keyof typeof COLORS;
   className?: string;
 }) {
+  const label = typeof children === "string" ? children.toLowerCase() : children;
   return (
     <span
       className={cn(
@@ -24,7 +24,7 @@ export function Badge({
         className
       )}
     >
-      {children}
+      {label}
     </span>
   );
 }

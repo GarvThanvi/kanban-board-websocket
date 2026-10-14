@@ -10,8 +10,8 @@ interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
 
 const VARIANTS: Record<NonNullable<ButtonProps["variant"]>, string> = {
   primary: "bg-text text-bg hover:bg-white/90",
-  secondary: "bg-surface-2 text-text border border-border hover:bg-surface-3",
-  ghost: "text-text-muted hover:text-text hover:bg-white/5",
+  secondary: "border border-border bg-surface-2 text-text hover:border-border-strong hover:bg-surface-3",
+  ghost: "text-text-muted hover:bg-white/5 hover:text-text",
   danger: "bg-transparent text-danger border border-danger/40 hover:bg-danger/10",
 };
 
@@ -32,7 +32,7 @@ export function Button({
   return (
     <button
       className={cn(
-        "inline-flex items-center justify-center gap-2 rounded-lg font-medium transition-colors disabled:opacity-50 disabled:pointer-events-none",
+        "inline-flex items-center justify-center gap-2 rounded-md font-medium transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-text disabled:pointer-events-none disabled:opacity-50",
         SIZES[size],
         VARIANTS[variant],
         className

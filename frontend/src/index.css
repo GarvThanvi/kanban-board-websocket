@@ -1,42 +1,81 @@
 @import "tailwindcss";
 
 @theme {
-  --color-bg: #08090a;
-  --color-surface: #0f1011;
-  --color-surface-2: #141516;
-  --color-surface-3: #1a1b1d;
-  --color-border: rgba(255, 255, 255, 0.08);
-  --color-border-strong: rgba(255, 255, 255, 0.14);
-  --color-text: #f7f8f8;
-  --color-text-muted: #8a8f98;
-  --color-text-faint: #62666d;
-  --color-accent: #5e6ad2;
-  --color-accent-hover: #6e78e0;
+  --color-bg: #0a0c0f;
+  --color-surface: #12151a;
+  --color-surface-2: #1a1e24;
+  --color-surface-3: #222830;
+  --color-border: rgba(238, 241, 244, 0.09);
+  --color-border-strong: rgba(238, 241, 244, 0.17);
+  --color-text: #eef1f4;
+  --color-text-muted: #9aa1ac;
+  --color-text-faint: #6b7280;
+  --color-signal: #4cc9e0;
   --color-danger: #eb5757;
-  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-sans: "Geist Variable", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "Geist Mono Variable", ui-monospace, SFMono-Regular, monospace;
 }
 
 html {
   color-scheme: dark;
+  scroll-behavior: smooth;
 }
 
 body {
-  @apply bg-bg text-text font-sans antialiased;
+  @apply m-0 min-w-80 bg-bg font-sans text-text antialiased;
 }
 
 ::selection {
-  background: rgba(94, 106, 210, 0.4);
+  background: rgba(76, 201, 224, 0.28);
+  color: var(--color-text);
+}
+
+:focus-visible {
+  outline: 2px solid rgba(238, 241, 244, 0.8);
+  outline-offset: 2px;
+}
+
+button,
+a,
+input,
+textarea {
+  -webkit-tap-highlight-color: transparent;
 }
 
 *::-webkit-scrollbar {
-  width: 10px;
-  height: 10px;
+  width: 9px;
+  height: 9px;
 }
 *::-webkit-scrollbar-thumb {
-  background: #232427;
-  border-radius: 8px;
-  border: 2px solid #08090a;
+  background: #303640;
+  border-radius: 999px;
+  border: 2px solid #0a0c0f;
 }
 *::-webkit-scrollbar-track {
   background: transparent;
+}
+
+@keyframes signal-pulse {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 rgba(76, 201, 224, 0.35);
+  }
+  55% {
+    box-shadow: 0 0 0 5px rgba(76, 201, 224, 0);
+  }
+}
+
+.signal-pulse {
+  animation: signal-pulse 2.4s ease-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }

@@ -110,12 +110,12 @@ onCardClick,
             : undefined,
         }}
         className={cn(
-          "flex w-72 shrink-0 max-h-full flex-col rounded-xl border border-border bg-surface",
+          "flex w-[292px] shrink-0 max-h-full flex-col rounded-[11px] border border-border bg-surface",
           isDragging && "opacity-40"
         )}
       >
         <div
-          className="flex cursor-grab items-center justify-between px-3.5 pb-2 pt-3"
+          className="flex cursor-grab items-center justify-between px-3.5 pb-2.5 pt-3.5"
           {...attributes}
           {...listeners}
           onDoubleClick={() => {
@@ -138,20 +138,20 @@ onCardClick,
               onFocus={() =>
                 getSocket().emit("column:editing", { boardId, columnId: column.id })
               }
-              className="w-full rounded-md bg-surface-2 border border-border px-2 py-1 text-[13px] font-semibold uppercase tracking-wide outline-none focus:border-accent/60"
+              className="h-8 w-full rounded-md border border-border bg-surface-2 px-2 text-[13px] font-medium outline-none focus-visible:border-border-strong focus-visible:ring-2 focus-visible:ring-white/10"
             />
           ) : (
-            <p className="text-[13px] font-semibold uppercase tracking-wide text-text-muted">
+            <p className="text-[13px] font-medium text-text-muted">
               {column.name}
             </p>
           )}
-          <div className="flex items-center gap-1">
-            <span className="text-xs text-text-faint">{column.cards.length}</span>
+          <div className="flex items-center gap-2">
+            <span className="font-mono text-[10px] text-text-faint">{column.cards.length.toString().padStart(2, "0")}</span>
             {!readOnly && (
               <Dropdown
                 align="right"
                 trigger={
-                  <button className="rounded-md p-1 text-text-faint hover:bg-white/5 hover:text-text">
+                  <button aria-label={`Options for ${column.name}`} className="rounded-md p-1 text-text-faint transition-colors hover:bg-white/5 hover:text-text">
                     <MoreHorizontal className="size-4" />
                   </button>
                 }

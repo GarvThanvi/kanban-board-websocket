@@ -47,14 +47,20 @@ export function CardView({
           : undefined,
       }}
       className={cn(
-        "group relative rounded-lg border border-border bg-surface-2 p-3 transition-colors",
-        !readOnly && "cursor-grab hover:border-border-strong",
+        "group relative w-full rounded-[8px] border border-border bg-surface-2 p-3 text-left transition-colors",
+        !readOnly && "cursor-grab hover:border-border-strong hover:bg-surface-3",
         readOnly && "cursor-default",
         isDragging && "opacity-40"
       )}
       {...attributes}
       {...listeners}
       onClick={onClick}
+      onKeyDown={(event) => {
+        if (event.key === "Enter" || event.key === " ") {
+          event.preventDefault();
+          onClick();
+        }
+      }}
     >
       <p className="text-[13.5px] leading-snug">{card.title}</p>
       {card.description && (

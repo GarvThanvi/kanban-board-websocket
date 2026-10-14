@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
-import { ChevronLeft } from "lucide-react";
+import { ChevronLeft, Share2 } from "lucide-react";
 import { api } from "../lib/api";
 import { useBoardSocket } from "../hooks/useBoardSocket";
 import { BoardCanvas } from "../components/board/BoardCanvas";
@@ -42,7 +42,7 @@ export default function BoardPage() {
         title="Board not found"
         subtitle="This board doesn't exist or you don't have access to it."
         action={
-          <Link to="/boards" className="text-[13px] text-accent hover:text-accent-hover">
+          <Link to="/boards" className="text-[13px] text-text-muted hover:text-text">
             Back to boards
           </Link>
         }
@@ -55,23 +55,25 @@ export default function BoardPage() {
 
   return (
     <>
-      <div className="flex h-14 items-center justify-between border-b border-border px-4">
+      <div className="sticky top-0 z-20 flex h-14 items-center justify-between border-b border-border bg-bg/95 px-2.5 backdrop-blur sm:px-4">
         <div className="flex min-w-0 items-center gap-2">
           <Link
             to="/boards"
-            className="rounded-md p-1.5 text-text-muted hover:bg-white/5 hover:text-text"
+            className="rounded-md p-1.5 text-text-muted transition-colors hover:bg-white/5 hover:text-text"
             title="Back to boards"
           >
             <ChevronLeft className="size-4" />
           </Link>
-          <h1 className="truncate text-[15px] font-semibold">{board.name}</h1>
-          <Badge color={isOwner ? "yellow" : "accent"}>{board.role}</Badge>
+          <span className="hidden text-text-faint sm:inline">/</span>
+          <h1 className="truncate text-[14px] font-medium tracking-[-0.02em] sm:text-[15px]">{board.name}</h1>
+          <Badge color={isOwner ? "yellow" : "muted"}>{board.role}</Badge>
         </div>
         <div className="flex items-center gap-2">
           <PresenceBar />
           {isOwner && (
             <Button size="sm" variant="secondary" onClick={() => setShareOpen(true)}>
-              Share
+              <Share2 className="size-3.5" />
+              <span className="hidden sm:inline">Share</span>
             </Button>
           )}
           {isOwner && <BoardMenu board={board} />}

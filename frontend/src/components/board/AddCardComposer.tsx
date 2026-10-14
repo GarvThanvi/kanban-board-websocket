@@ -83,7 +83,7 @@ export function AddCardComposer({
           if (e.key === "Escape") collapse();
         }}
         placeholder="Card title…"
-        className="w-full resize-none rounded-lg border border-border bg-surface-2 p-2.5 text-[13px] outline-none placeholder:text-text-faint focus:border-accent/60"
+        className="w-full resize-none rounded-lg border border-border bg-surface-2 p-2.5 text-[13px] outline-none placeholder:text-text-faint focus-visible:border-border-strong focus-visible:ring-2 focus-visible:ring-white/10"
       />
       <div className="mt-1.5 flex items-center gap-1">
         <Button size="sm" loading={loading} onClick={submit}>

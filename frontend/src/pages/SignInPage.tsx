@@ -64,7 +64,7 @@ export default function SignInPage() {
         </Button>
       </form>
       <div className="mt-4 flex items-center justify-between text-[13px]">
-        <Link to="/forgot-password" className="text-accent hover:text-accent-hover">
+        <Link to="/forgot-password" className="text-text-muted hover:text-text">
           Forgot password?
         </Link>
         <span className="text-text-faint">

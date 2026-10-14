@@ -53,7 +53,7 @@ export function AddColumnButton({
     return (
       <button
         onClick={expand}
-        className="flex h-10 w-72 shrink-0 items-center gap-1.5 rounded-xl border border-dashed border-border px-4 text-left text-[13px] text-text-muted hover:border-border-strong hover:text-text"
+        className="flex h-10 w-[292px] shrink-0 items-center gap-1.5 rounded-[11px] border border-dashed border-border px-4 text-left text-[13px] text-text-muted transition-colors hover:border-border-strong hover:text-text"
       >
         <Plus className="size-3.5" />
         Add column
@@ -62,7 +62,7 @@ export function AddColumnButton({
   }
 
   return (
-    <div className="w-72 shrink-0 rounded-xl border border-border bg-surface p-3">
+    <div className="w-[292px] shrink-0 rounded-[11px] border border-border bg-surface p-3">
       <input
         autoFocus
         value={name}
@@ -72,7 +72,7 @@ export function AddColumnButton({
           if (e.key === "Escape") collapse();
         }}
         placeholder="Column name…"
-        className="w-full rounded-lg border border-border bg-surface-2 px-3 py-2 text-[13px] outline-none placeholder:text-text-faint focus:border-accent/60"
+        className="h-10 w-full rounded-lg border border-border bg-surface-2 px-3 text-[13px] outline-none placeholder:text-text-faint focus-visible:border-border-strong focus-visible:ring-2 focus-visible:ring-white/10"
       />
       <div className="mt-2 flex items-center gap-1">
         <Button size="sm" loading={loading} onClick={submit}>

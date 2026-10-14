@@ -78,7 +78,7 @@ export default function InvitePage() {
           </h1>
           <Link
             to={authed ? "/boards" : "/signin"}
-            className="mt-6 inline-block text-[13px] text-accent hover:text-accent-hover"
+            className="mt-6 inline-block text-[13px] text-text-muted hover:text-text"
           >
             {authed ? "Back to boards" : "Sign in"}
           </Link>
@@ -99,8 +99,8 @@ export default function InvitePage() {
   return (
     <AuthLayout>
       <div className="text-center">
-        <span className="mx-auto flex size-10 items-center justify-center rounded-xl bg-accent/15">
-          <Mail className="size-5 text-accent" />
+        <span className="mx-auto flex size-10 items-center justify-center rounded-xl border border-border bg-surface-2">
+          <Mail className="size-5 text-text-muted" />
         </span>
         <h1 className="mt-4 text-xl font-semibold">
           {inv.inviter.name} invited you
@@ -110,7 +110,7 @@ export default function InvitePage() {
           <span className="font-medium text-text">{inv.boardName}</span>
         </p>
         <div className="mt-3">
-          <Badge color="accent">{inv.role}</Badge>
+          <Badge color="muted">{inv.role}</Badge>
         </div>
 
         {inv.expired && (

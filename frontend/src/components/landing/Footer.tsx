@@ -1,73 +1,45 @@
 import { Link } from "react-router-dom";
-import { Layers } from "lucide-react";
-
-const COLUMNS: { heading: string; links: string[] }[] = [
-  { heading: "Product", links: ["Boards", "Realtime", "Sharing", "Roles"] },
-  { heading: "Company", links: ["About", "Blog", "Careers", "Contact"] },
-  { heading: "Resources", links: ["Docs", "Guides", "Changelog", "Status"] },
-  { heading: "Legal", links: ["Privacy", "Terms", "Security"] },
-];
+import { BrandMark } from "../ui/BrandMark";
 
 export function Footer() {
   return (
-    <footer className="border-t border-border">
-      <div className="px-6 py-28 text-center">
-        <h2 className="text-4xl font-semibold tracking-tight">
-          Built for the future.
-          <br />
-          Available today.
-        </h2>
-        <Link
-          to="/signup"
-          className="mt-8 inline-flex h-9 items-center rounded-full bg-text px-4 text-sm font-medium text-bg"
-        >
-          Get started
-        </Link>
-      </div>
-      <div className="mx-auto max-w-6xl px-6 pb-12">
-        <div className="grid grid-cols-2 gap-8 border-t border-border pt-12 md:grid-cols-5">
+    <>
+      <section id="start" className="px-5 py-20 sm:px-8 sm:py-28">
+        <div className="mx-auto flex max-w-[1360px] flex-col justify-between gap-8 border-b border-border pb-16 md:flex-row md:items-end">
           <div>
-            <Link to="/" className="flex items-center gap-2">
-              <span className="flex size-6 items-center justify-center rounded-md bg-accent/15">
-                <Layers className="size-3.5 text-accent" />
-              </span>
-              <span className="text-[15px] font-semibold tracking-tight">
-                Flowline
-              </span>
-            </Link>
+            <p className="text-[12px] text-text-faint">Your next cycle starts here</p>
+            <h2 className="mt-4 max-w-[14ch] text-3xl font-medium leading-[1.08] tracking-[-0.055em] sm:text-5xl">
+              Give the work one place to move.
+            </h2>
           </div>
-          {COLUMNS.map((col) => (
-            <div key={col.heading}>
-              <p className="mb-3 text-[13px] font-medium text-text">
-                {col.heading}
-              </p>
-              <ul className="flex flex-col gap-2">
-                {col.links.map((l) => (
-                  <li key={l}>
-                    <a
-                      href="#"
-                      className="text-[13px] text-text-muted transition-colors hover:text-text"
-                    >
-                      {l}
-                    </a>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          ))}
+          <Link
+            to="/signup"
+            className="inline-flex h-10 shrink-0 items-center justify-center rounded-md bg-text px-4 text-[13px] font-medium text-bg transition-colors hover:bg-white/90"
+          >
+            Create your first board
+          </Link>
         </div>
-        <div className="mt-12 flex items-center justify-between border-t border-border pt-6 text-[13px] text-text-faint">
-          <span>© 2026 Flowline</span>
-          <div className="flex gap-4">
-            <a href="#" className="hover:text-text">
-              Privacy
-            </a>
-            <a href="#" className="hover:text-text">
-              Terms
-            </a>
-          </div>
+      </section>
+
+      <footer className="px-5 pb-8 sm:px-8">
+        <div className="mx-auto flex max-w-[1360px] flex-col gap-8 sm:flex-row sm:items-center sm:justify-between">
+          <Link
+            to="/"
+            onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
+            className="flex items-center gap-2.5"
+            aria-label="Flowline home"
+          >
+            <BrandMark size={26} />
+            <span className="text-[14px] font-semibold tracking-[-0.035em]">flowline</span>
+          </Link>
+          <nav aria-label="Footer" className="flex flex-wrap gap-x-6 gap-y-3 text-[12px] text-text-muted">
+            <a href="#features" className="transition-colors hover:text-text">Features</a>
+            <a href="#collaboration" className="transition-colors hover:text-text">Collaboration</a>
+            <Link to="/signin" className="transition-colors hover:text-text">Sign in</Link>
+          </nav>
+          <span className="font-mono text-[10px] text-text-faint">© 2026 Flowline</span>
         </div>
-      </div>
-    </footer>
+      </footer>
+    </>
   );
 }

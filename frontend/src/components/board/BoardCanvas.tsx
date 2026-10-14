@@ -315,7 +315,7 @@ export function BoardCanvas({
   return (
     <div
       className={cn(
-        "flex h-[calc(100vh-3.5rem)] items-start gap-4 overflow-x-auto p-6"
+        "flex h-[calc(100dvh-3.5rem)] items-start gap-3 overflow-x-auto p-4 sm:gap-4 sm:p-6"
       )}
     >
       {readOnly ? (
@@ -355,8 +355,8 @@ export function BoardCanvas({
               </div>
             )}
             {activeColumn && (
-              <div className="w-72 -rotate-1 rounded-xl border border-border-strong bg-surface p-3 shadow-2xl opacity-90">
-                <p className="text-[13px] font-semibold uppercase tracking-wide text-text-muted">
+              <div className="w-[292px] -rotate-1 rounded-[11px] border border-border-strong bg-surface p-3 shadow-2xl opacity-90">
+                <p className="text-[13px] font-medium text-text-muted">
                   {activeColumn.name}
                 </p>
                 <p className="mt-2 text-xs text-text-faint">
@@ -406,7 +406,7 @@ function PresenceGuestColumnPlaceholder({ boardId }: { boardId: string }) {
   const entry = activity[`columnCreating:${boardId}`];
   if (!entry) return null;
   return (
-    <div className="w-72 shrink-0 rounded-xl border border-dashed border-border bg-surface/50 p-4">
+    <div className="w-[292px] shrink-0 rounded-[11px] border border-dashed border-border bg-surface/50 p-4">
       <ActivityBadge user={entry.user} label="is adding a column…" />
     </div>
   );

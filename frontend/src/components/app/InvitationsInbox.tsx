@@ -57,7 +57,7 @@ export function InvitationsInbox() {
                 </span>{" "}
                 <span className="font-medium">{inv.board?.name}</span>
               </p>
-              <Badge color="accent">{inv.role}</Badge>
+              <Badge color="muted">{inv.role}</Badge>
             </div>
             <div className="flex items-center gap-2">
               <Button

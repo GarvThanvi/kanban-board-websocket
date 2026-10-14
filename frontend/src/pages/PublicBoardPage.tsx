@@ -1,7 +1,7 @@
 import { useMemo } from "react";
 import { Link, useParams } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
-import { ChevronLeft, Layers } from "lucide-react";
+import { ChevronLeft, LayoutGrid } from "lucide-react";
 import { api } from "../lib/api";
 import { useAuth } from "../stores/auth";
 import { useBoardSocket } from "../hooks/useBoardSocket";
@@ -11,6 +11,7 @@ import { Badge } from "../components/ui/Badge";
 import { Button } from "../components/ui/Button";
 import { EmptyState } from "../components/ui/EmptyState";
 import { Spinner } from "../components/ui/Spinner";
+import { BrandMark } from "../components/ui/BrandMark";
 import type { BoardDetail } from "../lib/types";
 
 export default function PublicBoardPage() {
@@ -32,11 +33,11 @@ export default function PublicBoardPage() {
   if (error || !data) {
     return (
       <EmptyState
-        icon={<Layers className="size-10" />}
+        icon={<LayoutGrid className="size-10" />}
         title="Link unavailable"
         subtitle="This link is invalid, expired, or has been disabled by the board owner."
         action={
-          <Link to="/" className="text-[13px] text-accent hover:text-accent-hover">
+          <Link to="/" className="text-[13px] text-text-muted hover:text-text">
             Go home
           </Link>
         }
@@ -62,23 +63,22 @@ function PublicBoardInner({
 
   return (
     <div className="bg-bg">
-      <div className="flex h-14 items-center justify-between border-b border-border px-4">
+      <div className="flex h-14 items-center justify-between border-b border-border px-2.5 sm:px-4">
         <div className="flex min-w-0 items-center gap-2">
           <Link
             to="/"
             className="flex items-center gap-2 text-text"
             title="Flowline"
           >
-            <span className="flex size-6 items-center justify-center rounded-md bg-accent/15">
-              <Layers className="size-3.5 text-accent" />
-            </span>
-            <span className="text-[15px] font-semibold tracking-tight">
-              Flowline
+            <BrandMark size={25} />
+            <span className="text-[14px] font-semibold tracking-[-0.035em]">
+              flowline
             </span>
           </Link>
           <ChevronLeft className="hidden size-4 text-text-faint sm:block" />
-          <h1 className="truncate text-[15px] font-semibold">{board.name}</h1>
-          <Badge color="green">Live</Badge>
+          <span className="hidden text-text-faint sm:inline">/</span>
+          <h1 className="truncate text-[14px] font-medium sm:text-[15px]">{board.name}</h1>
+          <Badge color="signal">Live</Badge>
           <Badge color="muted">Read-only</Badge>
         </div>
         <div className="flex items-center gap-2">

@@ -48,7 +48,7 @@ export default function ResetPasswordPage() {
           <p className="mt-1 text-sm text-text-muted">{invalid}</p>
           <Link
             to="/forgot-password"
-            className="mt-6 inline-block text-[13px] text-accent hover:text-accent-hover"
+            className="mt-6 inline-block text-[13px] text-text-muted hover:text-text"
           >
             Request a new reset link
           </Link>

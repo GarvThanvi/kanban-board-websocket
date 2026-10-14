@@ -13,14 +13,14 @@ export function initials(name: string): string {
 }
 
 const AVATAR_COLORS = [
-  "#5e6ad2",
-  "#8b5cf6",
-  "#0ea5e9",
-  "#10b981",
-  "#f59e0b",
-  "#ef4444",
-  "#ec4899",
-  "#14b8a6",
+  "#4cc9e0",
+  "#a98be8",
+  "#e7a45f",
+  "#e47e91",
+  "#70c7a2",
+  "#83a9e5",
+  "#d58fc5",
+  "#c0a46b",
 ];
 
 export function avatarColor(name: string): string {

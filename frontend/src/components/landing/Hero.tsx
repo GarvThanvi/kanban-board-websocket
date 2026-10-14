@@ -3,34 +3,40 @@ import { BoardMockup } from "./BoardMockup";
 
 export function Hero() {
   return (
-    <section className="px-6 pb-24 pt-40 text-center">
-      <span className="inline-flex items-center gap-2 rounded-full border border-border px-3 py-1 text-[13px] text-text-muted">
-        <span className="font-medium text-text">New</span>
-        Realtime collaboration
-      </span>
-      <h1 className="mx-auto mt-6 max-w-3xl text-5xl font-semibold tracking-tight md:text-6xl">
-        Plan and build, together in real time
-      </h1>
-      <p className="mx-auto mt-5 max-w-xl text-lg text-text-muted">
-        Flowline is a realtime kanban for teams — drag cards, share boards, and
-        see every change as it happens.
-      </p>
-      <div className="mt-8 flex items-center justify-center gap-3">
-        <Link
-          to="/signup"
-          className="inline-flex h-9 items-center rounded-full bg-text px-4 text-sm font-medium text-bg"
-        >
-          Get started
-        </Link>
-        <Link
-          to="/signin"
-          className="inline-flex h-9 items-center rounded-full border border-border bg-surface-2 px-4 text-sm font-medium text-text"
-        >
-          Log in
-        </Link>
-      </div>
-      <div className="mx-auto mt-20 max-w-4xl">
-        <BoardMockup />
+    <section id="product" className="overflow-hidden px-5 pb-12 pt-24 sm:px-8 sm:pb-16 sm:pt-28">
+      <div className="mx-auto max-w-[1360px]">
+        <div className="max-w-[850px]">
+          <div className="mb-7 inline-flex items-center gap-2.5 text-[12px] font-medium text-text-muted">
+            <span className="signal-pulse size-2 rounded-full bg-signal" />
+            Three teammates are moving work right now
+          </div>
+          <h1 className="max-w-[18ch] text-[clamp(3.25rem,7.2vw,6.25rem)] font-medium leading-[0.99] tracking-[-0.075em]">
+            Keep the work moving.
+            <span className="mt-1 block">Keep your team in sync.</span>
+          </h1>
+          <p className="mt-7 max-w-[48ch] text-[16px] leading-7 text-text-muted sm:text-[17px]">
+            A kanban board that updates the moment work changes. Know what is
+            moving, who is on it, and what needs you next.
+          </p>
+          <div className="mt-8 flex flex-wrap items-center gap-3">
+            <Link
+              to="/signup"
+              className="inline-flex h-10 items-center rounded-md bg-text px-4 text-[13px] font-medium text-bg transition-colors hover:bg-white/90"
+            >
+              Start a board
+            </Link>
+            <a
+              href="#collaboration"
+              className="inline-flex h-10 items-center rounded-md px-3 text-[13px] font-medium text-text-muted transition-colors hover:bg-white/[0.04] hover:text-text"
+            >
+              See how teams stay in sync
+            </a>
+          </div>
+          <p className="mt-5 text-[11px] text-text-faint">For software teams</p>
+        </div>
+        <div className="mt-14 sm:mt-16">
+          <BoardMockup />
+        </div>
       </div>
     </section>
   );
