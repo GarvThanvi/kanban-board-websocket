@@ -5,6 +5,8 @@ import { useAuth } from "../../stores/auth";
 import { api } from "../../lib/api";
 import { disconnectSocket } from "../../lib/socket";
 import { Avatar } from "../ui/Avatar";
+import { Button } from "../ui/Button";
+import { Modal } from "../ui/Modal";
 import { cn } from "../../lib/utils";
 import { BrandMark } from "../ui/BrandMark";
 import { CommandPalette } from "./CommandPalette";
@@ -20,6 +22,7 @@ export function AppLayout() {
   const navigate = useNavigate();
   const [paletteOpen, setPaletteOpen] = useState(false);
   const [createBoardOpen, setCreateBoardOpen] = useState(false);
+  const [logoutOpen, setLogoutOpen] = useState(false);
   const modifierKey =
     typeof navigator !== "undefined" && /Mac|iPhone|iPad/.test(navigator.platform)
       ? "⌘"
@@ -106,7 +109,7 @@ export function AppLayout() {
               <p className="truncate text-[10px] text-text-faint">{user?.email}</p>
             </div>
             <button
-              onClick={logout}
+              onClick={() => setLogoutOpen(true)}
               className="inline-flex rounded-md p-1.5 text-text-muted transition-colors hover:bg-white/[0.05] hover:text-text"
               title="Log out"
               aria-label="Log out"
@@ -128,6 +131,28 @@ export function AppLayout() {
         open={createBoardOpen}
         onClose={() => setCreateBoardOpen(false)}
       />
+      <Modal
+        open={logoutOpen}
+        onClose={() => setLogoutOpen(false)}
+        title="Log out?"
+      >
+        <p className="text-sm text-text-muted">
+          You'll be signed out of your account on this device.
+        </p>
+        <div className="mt-5 flex justify-end gap-2">
+          <Button variant="ghost" onClick={() => setLogoutOpen(false)}>
+            Cancel
+          </Button>
+          <Button
+            onClick={() => {
+              setLogoutOpen(false);
+              logout();
+            }}
+          >
+            Log out
+          </Button>
+        </div>
+      </Modal>
     </div>
   );
 }
