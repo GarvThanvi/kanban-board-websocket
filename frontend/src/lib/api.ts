@@ -11,7 +11,8 @@ import type {
   User,
 } from "./types";
 
-const BASE = "/api";
+const API_ORIGIN = (import.meta.env.VITE_API_URL ?? "").replace(/\/+$/, "");
+const BASE = `${API_ORIGIN}/api`;
 
 export class ApiError extends Error {
   status: number;
