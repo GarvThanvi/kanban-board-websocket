@@ -24,7 +24,7 @@ export function Highlight() {
         <div className="relative overflow-hidden rounded-[14px] border border-border bg-surface">
           <div className="flex items-center justify-between border-b border-border px-4 py-3 sm:px-5">
             <div className="flex items-center gap-2.5">
-              <span className="signal-pulse size-1.5 rounded-full bg-signal" />
+              <span className="size-1.5 rounded-full bg-signal" />
               <span className="text-[12px] font-medium">Platform board</span>
                 <span className="font-mono text-[10px] text-text-faint">Live</span>
             </div>
@@ -103,7 +103,7 @@ export function Highlight() {
                 </li>
               </ol>
               <div className="mt-6 flex items-center gap-2 border-t border-border pt-3 text-[10px] text-text-faint">
-                <span className="signal-pulse size-1.5 rounded-full bg-signal" />
+                <span className="size-1.5 rounded-full bg-signal" />
                 Activity syncs across the board
                 <ArrowRight className="ml-auto size-3" />
               </div>

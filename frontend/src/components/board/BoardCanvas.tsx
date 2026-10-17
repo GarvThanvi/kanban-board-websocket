@@ -1,11 +1,13 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import {
   DndContext,
   DragOverlay,
   PointerSensor,
+  closestCenter,
   closestCorners,
   useSensor,
   useSensors,
+  type CollisionDetection,
   type DragEndEvent,
   type DragOverEvent,
   type DragStartEvent,
@@ -14,6 +16,12 @@ import { arrayMove, horizontalListSortingStrategy, SortableContext } from "@dnd-
 import { useQueryClient } from "@tanstack/react-query";
 import { api } from "../../lib/api";
 import { updateBoardColumns } from "../../lib/boardCache";
+import {
+  animateRects,
+  captureRects,
+  layoutEqual,
+  type RectSnapshot,
+} from "../../lib/boardLayoutAnimation";
 import { getSocket } from "../../lib/socket";
 import { toast } from "../../stores/toast";
 import { usePresence } from "../../stores/presence";
@@ -31,6 +39,22 @@ interface BoardCanvasProps {
   onCardClick: (card: Card) => void;
 }
 
+const collisionDetection: CollisionDetection = (args) => {
+  const activeType = (args.active.data.current as { type?: string } | undefined)
+    ?.type;
+  if (activeType === "column") {
+    return closestCenter({
+      ...args,
+      droppableContainers: args.droppableContainers.filter(
+        (container) =>
+          (container.data.current as { type?: string } | undefined)?.type ===
+          "column"
+      ),
+    });
+  }
+  return closestCorners(args);
+};
+
 export function BoardCanvas({
   boardId,
   columns: propColumns,
@@ -47,19 +71,85 @@ export function BoardCanvas({
   const [activeCard, setActiveCard] = useState<Card | null>(null);
   const [activeColumn, setActiveColumn] = useState<ColumnWithCards | null>(null);
   const queryClient = useQueryClient();
+  const [isPanning, setIsPanning] = useState(false);
+  const canvasRef = useRef<HTMLDivElement>(null);
+  const pendingLayoutRef = useRef<{
+    target: ColumnWithCards[];
+    rects: RectSnapshot;
+  } | null>(null);
+  const panRef = useRef<{
+    pointerId: number;
+    startX: number;
+    startScrollLeft: number;
+  } | null>(null);
 
   useEffect(() => {
     columnsRef.current = columns;
   }, [columns]);
 
-  // sync external updates (socket echoes / refetches) into local state, unless mid-drag
-  useEffect(() => {
-    if (!draggingRef.current) setColumns(propColumns);
+  // sync external updates (socket echoes / refetches) into local state, unless
+  // mid-drag. when the incoming layout differs from the rendered one, capture
+  // element positions first so the next commit can FLIP-animate into place
+  useLayoutEffect(() => {
+    if (draggingRef.current) return;
+    const current = columnsRef.current;
+    if (layoutEqual(current, propColumns)) {
+      if (current !== propColumns) setColumns(propColumns);
+      return;
+    }
+    const root = canvasRef.current;
+    if (root) {
+      pendingLayoutRef.current = {
+        target: propColumns,
+        rects: captureRects(root),
+      };
+    }
+    setColumns(propColumns);
   }, [propColumns]);
+
+  // after the sync commit lands, animate changed elements from the
+  // captured positions to their final ones
+  useLayoutEffect(() => {
+    const pending = pendingLayoutRef.current;
+    if (!pending || pending.target !== columns) return;
+    pendingLayoutRef.current = null;
+    const root = canvasRef.current;
+    if (root) animateRects(root, pending.rects);
+  }, [columns]);
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 6 } })
   );
+
+  // blank-canvas panning: left-button drags that begin on the scroll
+  // container itself (background, padding, gaps) scroll the board
+  const onCanvasPointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
+    if (e.pointerType !== "mouse" || e.button !== 0) return;
+    if (e.target !== e.currentTarget) return;
+    panRef.current = {
+      pointerId: e.pointerId,
+      startX: e.clientX,
+      startScrollLeft: e.currentTarget.scrollLeft,
+    };
+    e.currentTarget.setPointerCapture(e.pointerId);
+    setIsPanning(true);
+  };
+
+  const onCanvasPointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
+    const pan = panRef.current;
+    if (!pan || pan.pointerId !== e.pointerId) return;
+    e.currentTarget.scrollLeft = pan.startScrollLeft - (e.clientX - pan.startX);
+  };
+
+  const endCanvasPan = (e: React.PointerEvent<HTMLDivElement>) => {
+    const pan = panRef.current;
+    if (!pan || pan.pointerId !== e.pointerId) return;
+    panRef.current = null;
+    if (e.currentTarget.hasPointerCapture(e.pointerId)) {
+      e.currentTarget.releasePointerCapture(e.pointerId);
+    }
+    setIsPanning(false);
+  };
 
   const restore = (state: ColumnWithCards[]) => {
     setColumns(state);
@@ -89,6 +179,7 @@ export function BoardCanvas({
 
   const onDragStart = (e: DragStartEvent) => {
     draggingRef.current = true;
+    pendingLayoutRef.current = null;
     snapshotRef.current = columnsRef.current;
     const type = (e.active.data.current as { type?: string } | undefined)?.type;
     if (type === "card") {
@@ -314,8 +405,14 @@ export function BoardCanvas({
 
   return (
     <div
+      ref={canvasRef}
+      onPointerDown={onCanvasPointerDown}
+      onPointerMove={onCanvasPointerMove}
+      onPointerUp={endCanvasPan}
+      onPointerCancel={endCanvasPan}
       className={cn(
-        "flex h-[calc(100dvh-3.5rem)] items-start gap-3 overflow-x-auto p-4 sm:gap-4 sm:p-6"
+        "flex h-[calc(100dvh-3.5rem)] items-start gap-3 overflow-x-auto p-4 cursor-grab sm:gap-4 sm:p-6",
+        isPanning && "cursor-grabbing select-none"
       )}
     >
       {readOnly ? (
@@ -330,7 +427,7 @@ export function BoardCanvas({
       ) : (
         <DndContext
           sensors={sensors}
-          collisionDetection={closestCorners}
+          collisionDetection={collisionDetection}
           onDragStart={onDragStart}
           onDragOver={onDragOver}
           onDragEnd={onDragEnd}

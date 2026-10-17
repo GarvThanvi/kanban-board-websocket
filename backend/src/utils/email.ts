@@ -1,39 +1,45 @@
 import "dotenv/config";
 
 const FONT =
-  "'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif";
+  "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif";
 
-const darkEmailHtml = (heading: string, bodyHtml: string, ctaLabel: string, ctaUrl: string, footerNote: string) => `
+const escapeHtml = (value: string) =>
+  value
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+
+const darkEmailHtml = (
+  heading: string,
+  bodyHtml: string,
+  ctaLabel: string,
+  ctaUrl: string,
+  footerNote: string,
+  footerReason: string
+) => `
 <!DOCTYPE html>
 <html>
-  <body style="margin:0; padding:0; background-color:#08090a;">
-    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color:#08090a; padding:40px 16px;">
+  <body style="margin:0; padding:0; background-color:#0a0c0f;">
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color:#0a0c0f; padding:40px 16px;">
       <tr>
         <td align="center">
-          <table role="presentation" width="480" cellpadding="0" cellspacing="0" style="max-width:480px; width:100%; background-color:#0f1011; border:1px solid rgba(255,255,255,0.08); border-radius:16px;">
+          <table role="presentation" width="480" cellpadding="0" cellspacing="0" style="max-width:480px; width:100%; background-color:#12151a; border:1px solid #21262d; border-radius:14px;">
             <tr>
               <td style="padding:32px 32px 0 32px;">
-                <table role="presentation" cellpadding="0" cellspacing="0">
-                  <tr>
-                    <td style="vertical-align:middle; padding-right:8px;">
-                      <table role="presentation" cellpadding="0" cellspacing="0" style="background-color:rgba(94,106,210,0.15); border-radius:6px;">
-                        <tr><td style="padding:6px;">&#128190;</td></tr>
-                      </table>
-                    </td>
-                    <td style="vertical-align:middle; font-family:${FONT}; font-size:17px; font-weight:600; color:#f7f8f8;">
-                      Flowline
-                    </td>
-                  </tr>
-                </table>
+                <span style="font-family:${FONT}; font-size:15px; font-weight:600; letter-spacing:0.02em; color:#eef1f4;">
+                  Flowline
+                </span>
               </td>
             </tr>
             <tr>
-              <td style="padding:24px 32px 0 32px; font-family:${FONT}; font-size:20px; font-weight:600; color:#f7f8f8; line-height:1.4;">
+              <td style="padding:24px 32px 0 32px; font-family:${FONT}; font-size:20px; font-weight:600; color:#eef1f4; line-height:1.4;">
                 ${heading}
               </td>
             </tr>
             <tr>
-              <td style="padding:12px 32px 0 32px; font-family:${FONT}; font-size:14px; color:#8a8f98; line-height:1.6;">
+              <td style="padding:12px 32px 0 32px; font-family:${FONT}; font-size:14px; color:#9aa1ac; line-height:1.6;">
                 ${bodyHtml}
               </td>
             </tr>
@@ -41,10 +47,10 @@ const darkEmailHtml = (heading: string, bodyHtml: string, ctaLabel: string, ctaU
               <td align="center" style="padding:28px 32px 0 32px;">
                 <table role="presentation" cellpadding="0" cellspacing="0">
                   <tr>
-                    <td style="background-color:#5e6ad2; border-radius:8px;">
+                    <td style="background-color:#eef1f4; border-radius:8px;">
                       <a href="${ctaUrl}"
                          target="_blank"
-                         style="display:inline-block; padding:12px 24px; font-family:${FONT}; font-size:14px; font-weight:600; color:#ffffff; text-decoration:none;">
+                         style="display:inline-block; padding:11px 22px; font-family:${FONT}; font-size:14px; font-weight:600; color:#0a0c0f; text-decoration:none;">
                         ${ctaLabel}
                       </a>
                     </td>
@@ -53,15 +59,15 @@ const darkEmailHtml = (heading: string, bodyHtml: string, ctaLabel: string, ctaU
               </td>
             </tr>
             <tr>
-              <td style="padding:20px 32px 0 32px; font-family:${FONT}; font-size:13px; color:#62666d; line-height:1.6;">
+              <td style="padding:20px 32px 0 32px; font-family:${FONT}; font-size:13px; color:#6b7280; line-height:1.6;">
                 Or paste this link into your browser:<br />
-                <a href="${ctaUrl}" target="_blank" style="color:#5e6ad2; text-decoration:none; word-break:break-all;">${ctaUrl}</a>
+                <a href="${ctaUrl}" target="_blank" style="color:#9aa1ac; text-decoration:underline; word-break:break-all;">${ctaUrl}</a>
               </td>
             </tr>
             <tr>
-              <td style="padding:24px 32px 32px 32px; font-family:${FONT}; font-size:12px; color:#62666d; line-height:1.6; border-top:1px solid rgba(255,255,255,0.06);">
+              <td style="padding:24px 32px 32px 32px; font-family:${FONT}; font-size:12px; color:#6b7280; line-height:1.6; border-top:1px solid #1c2127;">
                 ${footerNote}<br />
-                You received this email because of a Flowline board action. &middot; Flowline
+                ${footerReason} &middot; &copy; Flowline
               </td>
             </tr>
           </table>
@@ -114,10 +120,11 @@ export const sendInviteEmail = async (
 
   const htmlContent = darkEmailHtml(
     "You've been invited to a board",
-    `<span style="color:#f7f8f8; font-weight:600;">${from}</span> invited you to collaborate on <span style="color:#f7f8f8; font-weight:600;">${boardName}</span>.`,
+    `<span style="color:#eef1f4; font-weight:600;">${escapeHtml(from)}</span> invited you to collaborate on <span style="color:#eef1f4; font-weight:600;">${escapeHtml(boardName)}</span>.`,
     "View invitation",
     inviteUrl,
-    "This invitation expires in 7 days."
+    "This invitation expires in 7 days.",
+    "You received this email because someone invited you to a Flowline board"
   );
 
   const textContent = `${from} invited you to collaborate on "${boardName}".\n\nView invitation: ${inviteUrl}\n\nThis invitation expires in 7 days.`;
@@ -138,7 +145,8 @@ export const sendForgotPasswordEmail = async (email: string, token: string) => {
     `We received a request to reset the password for your Flowline account. If this wasn't you, you can safely ignore this email.`,
     "Reset password",
     resetUrl,
-    "This link expires in 2 hours."
+    "This link expires in 2 hours.",
+    "You received this email because a password reset was requested for a Flowline account"
   );
 
   const textContent = `Reset your Flowline password.\n\nReset link: ${resetUrl}\n\nThis link expires in 2 hours. If you didn't request this, you can safely ignore this email.`;

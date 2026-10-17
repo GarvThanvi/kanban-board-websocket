@@ -6,6 +6,7 @@ import { api } from "../lib/api";
 import { useBoardSocket } from "../hooks/useBoardSocket";
 import { BoardCanvas } from "../components/board/BoardCanvas";
 import { CardModal } from "../components/board/CardModal";
+import { ActivityFeed } from "../components/board/ActivityFeed";
 import { PresenceBar } from "../components/board/PresenceBar";
 import { ShareModal } from "../components/board/ShareModal";
 import { BoardMenu } from "../components/board/BoardMenu";
@@ -69,6 +70,7 @@ export default function BoardPage() {
           <Badge color={isOwner ? "yellow" : "muted"}>{board.role}</Badge>
         </div>
         <div className="flex items-center gap-2">
+          <ActivityFeed />
           <PresenceBar />
           {isOwner && (
             <Button size="sm" variant="secondary" onClick={() => setShareOpen(true)}>

@@ -69,6 +69,56 @@ textarea {
   animation: signal-pulse 2.4s ease-out infinite;
 }
 
+@keyframes landing-arrive {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.landing-arrive {
+  animation: landing-arrive 520ms cubic-bezier(0.2, 0.7, 0.2, 1) both;
+}
+
+.landing-arrive-1 { animation-delay: 0ms; }
+.landing-arrive-2 { animation-delay: 70ms; }
+.landing-arrive-3 { animation-delay: 130ms; }
+.landing-arrive-4 { animation-delay: 180ms; }
+.landing-arrive-5 { animation-delay: 240ms; }
+
+@keyframes drawer-slide-in {
+  from {
+    transform: translateX(100%);
+  }
+
+  to {
+    transform: translateX(0);
+  }
+}
+
+@keyframes scrim-fade-in {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+.drawer-slide-in {
+  animation: drawer-slide-in 240ms cubic-bezier(0.2, 0.7, 0.2, 1) both;
+}
+
+.scrim-fade-in {
+  animation: scrim-fade-in 180ms ease-out both;
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
@@ -77,5 +127,16 @@ textarea {
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
+  }
+
+  .landing-arrive,
+  .landing-arrive-1,
+  .landing-arrive-2,
+  .landing-arrive-3,
+  .landing-arrive-4,
+  .landing-arrive-5 {
+    animation: none;
+    opacity: 1;
+    transform: none;
   }
 }

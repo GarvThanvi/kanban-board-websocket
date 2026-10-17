@@ -3,6 +3,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { getSocket } from "../lib/socket";
 import { updateBoardColumns } from "../lib/boardCache";
 import { usePresence } from "../stores/presence";
+import { useActivityLog } from "../stores/activityLog";
 import { toast } from "../stores/toast";
 import type {
   ActionType,
@@ -153,8 +154,10 @@ export function useBoardSocket(
     for (const t of types) {
       socket.on(
         `user:${t}`,
-        (p: { user: PresenceUser; targetId: string }) =>
-          usePresence.getState().setActivity(p.targetId, p.user, t)
+        (p: { user: PresenceUser; targetId: string }) => {
+          usePresence.getState().setActivity(p.targetId, p.user, t);
+          useActivityLog.getState().append(boardId, p.user, t, p.targetId);
+        }
       );
       socket.on(
         `user:${t}:stop`,
@@ -167,6 +170,7 @@ export function useBoardSocket(
       socket.emit("board:leave", { boardId });
       socket.off();
       usePresence.getState().reset();
+      useActivityLog.getState().clear(boardId);
     };
   }, [boardId, publicToken, queryClient, queryKey]);
 }

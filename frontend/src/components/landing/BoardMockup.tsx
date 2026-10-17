@@ -54,7 +54,7 @@ export function BoardMockup() {
           </div>
           <div className="flex items-center gap-4">
             <div className="hidden items-center gap-2 text-[11px] text-text-muted sm:flex">
-              <span className="signal-pulse size-1.5 rounded-full bg-signal" />
+              <span className="size-1.5 rounded-full bg-signal" />
               Live
             </div>
             <div className="flex -space-x-2">
@@ -147,7 +147,7 @@ export function BoardMockup() {
         </div>
 
         <div className="flex items-center gap-2 border-t border-border px-4 py-2.5 sm:px-5">
-          <span className="signal-pulse size-1.5 rounded-full bg-signal" />
+          <span className="size-1.5 rounded-full bg-signal" />
           <p className="min-w-0 truncate text-[10px] text-text-muted sm:text-[11px]">
             <span className="font-medium text-text">Ivo</span> moved “Instrument deploy events” to Queued
           </p>

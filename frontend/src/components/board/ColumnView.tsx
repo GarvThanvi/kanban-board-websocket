@@ -102,6 +102,7 @@ onCardClick,
     <>
       <div
         ref={setNodeRef}
+        data-column-id={column.id}
         style={{
           transform: CSS.Translate.toString(transform),
           transition,

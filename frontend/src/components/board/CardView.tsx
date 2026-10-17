@@ -39,6 +39,7 @@ export function CardView({
   return (
     <div
       ref={setNodeRef}
+      data-card-id={card.id}
       style={{
         transform: CSS.Translate.toString(transform),
         transition,

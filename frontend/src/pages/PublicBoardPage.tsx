@@ -6,6 +6,7 @@ import { api } from "../lib/api";
 import { useAuth } from "../stores/auth";
 import { useBoardSocket } from "../hooks/useBoardSocket";
 import { BoardCanvas } from "../components/board/BoardCanvas";
+import { ActivityFeed } from "../components/board/ActivityFeed";
 import { PresenceBar } from "../components/board/PresenceBar";
 import { Badge } from "../components/ui/Badge";
 import { Button } from "../components/ui/Button";
@@ -82,6 +83,7 @@ function PublicBoardInner({
           <Badge color="muted">Read-only</Badge>
         </div>
         <div className="flex items-center gap-2">
+          <ActivityFeed />
           <PresenceBar />
           {authed && (
             <Link to="/boards">
