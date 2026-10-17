@@ -15,7 +15,7 @@ export function ActivityBadge({
   return (
     <span
       className={cn(
-        "inline-flex items-center gap-1.5 rounded-full border px-1.5 py-0.5 text-[11px] font-medium whitespace-nowrap",
+        "inline-flex min-w-0 max-w-full items-center gap-1.5 rounded-full border px-1.5 py-0.5 text-[11px] font-medium whitespace-nowrap",
         className
       )}
       style={{
@@ -24,8 +24,8 @@ export function ActivityBadge({
         color,
       }}
     >
-      <Avatar name={user.name} size={14} isGuest={user.isGuest} />
-      <span className="text-text-muted">
+      <Avatar name={user.name} size={14} isGuest={user.isGuest} className="shrink-0" />
+      <span className="min-w-0 truncate text-text-muted">
         <span style={{ color }}>{user.name}</span> {label}
       </span>
     </span>
