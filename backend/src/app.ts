@@ -32,6 +32,8 @@ import prisma from "./lib/prisma.ts";
 
 const app = express();
 
+app.set("trust proxy", 1);
+
 app.use(helmet());
 app.use(cors({ origin: FRONTEND_URL }));
 app.use(express.json());
